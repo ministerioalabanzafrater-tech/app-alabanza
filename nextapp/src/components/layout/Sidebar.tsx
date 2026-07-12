@@ -3,8 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, Music2, ListMusic, Mic2,
-  BookOpen, GraduationCap, Users, LogOut, X
+  LayoutDashboard, Music2, ListMusic,
+  BookOpen, GraduationCap, Users, LogOut, X, UserCircle
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -14,10 +14,10 @@ const NAV = [
   { href: '/dashboard',    label: 'Dashboard',     icon: LayoutDashboard },
   { href: '/repertorio',   label: 'Repertorio',    icon: Music2 },
   { href: '/setlists',     label: 'Setlists',      icon: ListMusic },
-  { href: '/audio',        label: 'Lab de Audio',  icon: Mic2 },
   { href: '/fundamentos',  label: 'Fundamentos',   icon: BookOpen },
   { href: '/formacion',    label: 'Formación',     icon: GraduationCap },
   { href: '/equipo',       label: 'Equipo',        icon: Users },
+  { href: '/perfil',       label: 'Mi perfil',     icon: UserCircle },
 ]
 
 interface SidebarProps {
