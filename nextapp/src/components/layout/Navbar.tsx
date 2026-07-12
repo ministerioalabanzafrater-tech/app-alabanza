@@ -20,7 +20,7 @@ export default function Navbar({ profile, onMenuClick }: NavbarProps) {
       {/* Mobile menu btn */}
       <button
         onClick={onMenuClick}
-        className="lg:hidden p-2 border-2 border-black hover:bg-black hover:text-white transition-colors"
+        className="lg:hidden p-2 border-2 border-black rounded-xl hover:bg-black hover:text-white transition-colors"
         aria-label="Abrir menú"
       >
         <Menu size={20} />
@@ -33,8 +33,8 @@ export default function Navbar({ profile, onMenuClick }: NavbarProps) {
       <div className="flex items-center gap-3 ml-auto">
         <NotificationPanel />
 
-        <div className="flex items-center gap-2 border-2 border-black px-3 py-1.5">
-          <div className="w-7 h-7 bg-black text-white flex items-center justify-center text-xs font-black">
+        <div className="flex items-center gap-2 border-2 border-black rounded-xl px-3 py-1.5">
+          <div className="w-7 h-7 bg-black text-white flex items-center justify-center text-xs font-black rounded-lg">
             {initials}
           </div>
           <div className="hidden sm:block">
