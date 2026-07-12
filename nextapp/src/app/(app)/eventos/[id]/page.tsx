@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { ArrowLeft, CalendarDays, MapPin, ListMusic } from 'lucide-react'
+import { ArrowLeft, CalendarDays, MapPin, ListMusic, Pencil } from 'lucide-react'
 import Link from 'next/link'
 import AsistenciaSection from './AsistenciaSection'
 import type { Event, Setlist } from '@/types/database'
@@ -58,6 +58,12 @@ export default async function EventoPage({ params }: { params: Promise<{ id: str
         <Badge variant={event.type === 'servicio' ? 'filled' : 'default'} className="shrink-0 mt-1">
           {TYPE_LABEL[event.type] ?? event.type}
         </Badge>
+        <Link
+          href={`/eventos/${event.id}/editar`}
+          className="p-2 border-2 border-black hover:bg-black hover:text-white transition-colors shrink-0 mt-1"
+        >
+          <Pencil size={16} />
+        </Link>
       </div>
 
       {/* Info cards */}
