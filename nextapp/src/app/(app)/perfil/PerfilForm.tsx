@@ -58,13 +58,14 @@ export default function PerfilForm({ profile, userId }: { profile: Profile | nul
     setLoading(true)
 
     const supabase = createClient()
-    const { error } = await supabase.from('profiles').update({
+    // ponytail: cast because Database Update type resolves to never on this supabase-js version
+    const { error } = await (supabase.from('profiles') as any).update({
       full_name: form.full_name.trim(),
-      phone: form.phone.trim() || undefined,
-      birthday: form.birthday || undefined,
-      instrument: (form.instrument as InstrumentType) || undefined,
-      voice: (form.voice as VoiceType) || undefined,
-      bio: form.bio.trim() || undefined,
+      phone: form.phone?.trim() || null,
+      birthday: form.birthday || null,
+      instrument: form.instrument || null,
+      voice: form.voice || null,
+      bio: form.bio.trim() || null,
     }).eq('id', userId)
 
     setLoading(false)
