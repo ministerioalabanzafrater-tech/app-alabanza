@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 
-type Platform = 'ios' | 'android' | 'other'
+type Platform = 'ios' | 'android' | 'desktop'
 
 function getPlatform(): Platform {
   const ua = navigator.userAgent
   if (/iPhone|iPad|iPod/.test(ua)) return 'ios'
   if (/Android/.test(ua)) return 'android'
-  return 'other'
+  return 'desktop'
 }
 
 function isInstalled(): boolean {
@@ -69,6 +69,16 @@ function DownloadIcon() {
   )
 }
 
+function MonitorIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="3" width="20" height="14" rx="2" />
+      <line x1="8" y1="21" x2="16" y2="21" />
+      <line x1="12" y1="17" x2="12" y2="21" />
+    </svg>
+  )
+}
+
 // ── STEPS ─────────────────────────────────────────────────────────────────────
 function Step({ num, icon, text }: { num: number; icon: React.ReactNode; text: React.ReactNode }) {
   return (
@@ -77,7 +87,7 @@ function Step({ num, icon, text }: { num: number; icon: React.ReactNode; text: R
         {num}
       </span>
       <div className="flex items-center gap-2 text-sm font-medium">
-        <span className="p-1.5 bg-gray-100 rounded-lg">{icon}</span>
+        <span className="p-1.5 bg-gray-100 rounded-lg shrink-0">{icon}</span>
         {text}
       </div>
     </div>
@@ -93,10 +103,8 @@ export default function InstallPrompt() {
 
   useEffect(() => {
     if (isInstalled()) return
-    // Desktop: no bloqueamos
-    const p = getPlatform()
-    if (p === 'other') return
-    setPlatform(p)
+
+    setPlatform(getPlatform())
     setShow(true)
 
     const handler = (e: Event) => {
@@ -120,65 +128,95 @@ export default function InstallPrompt() {
   if (!show) return null
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center p-6">
-      {/* Logo */}
-      <Image
-        src="/logo.png"
-        alt="Alabanza Frater"
-        width={100}
-        height={100}
-        className="rounded-2xl mb-6 border-2 border-black"
-      />
+    <div className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center p-6 overflow-y-auto">
+      <div className="w-full max-w-sm flex flex-col items-center py-4">
+        <Image
+          src="/logo.png"
+          alt="Alabanza Frater"
+          width={96}
+          height={96}
+          className="rounded-2xl mb-5 border-2 border-black"
+        />
 
-      <h1 className="font-black text-2xl text-center mb-1">Alabanza Frater</h1>
-      <p className="text-gray-500 text-sm text-center mb-8 font-medium">
-        Instala la app para continuar
-      </p>
+        <h1 className="font-black text-2xl text-center mb-1">Alabanza Frater</h1>
+        <p className="text-gray-500 text-sm text-center mb-8 font-medium">
+          Instala la app para continuar
+        </p>
 
-      <div className="w-full max-w-sm border-2 border-black rounded-2xl p-5 shadow-[6px_6px_0px_#000] mb-6">
-        {platform === 'ios' ? (
-          <div className="flex flex-col gap-5">
-            <p className="font-black text-sm text-center border-b-2 border-black pb-3">
-              Cómo instalar en iPhone / iPad
-            </p>
-            <Step num={1} icon={<ShareIcon />}
-              text={<>Toca el botón <strong>Compartir</strong> en Safari</>} />
-            <Step num={2} icon={<PlusSquareIcon />}
-              text={<>Selecciona <strong>"Agregar a pantalla de inicio"</strong></>} />
-            <Step num={3} icon={<HomeIcon />}
-              text={<>Toca <strong>"Agregar"</strong> y abre la app desde tu pantalla de inicio</>} />
-          </div>
-        ) : (
-          <div className="flex flex-col gap-5">
-            <p className="font-black text-sm text-center border-b-2 border-black pb-3">
-              Cómo instalar en Android
-            </p>
-            {deferredPrompt ? (
-              <button
-                onClick={androidInstall}
-                disabled={installing}
-                className="brutal-btn flex items-center justify-center gap-2 w-full py-3 disabled:opacity-50"
-              >
-                <DownloadIcon />
-                {installing ? 'Instalando...' : 'Instalar aplicación'}
-              </button>
-            ) : (
-              <>
-                <Step num={1} icon={<DotsIcon />}
-                  text={<>Toca el menú <strong>⋮</strong> de Chrome</>} />
-                <Step num={2} icon={<PlusSquareIcon />}
-                  text={<>Selecciona <strong>"Añadir a pantalla de inicio"</strong></>} />
-                <Step num={3} icon={<HomeIcon />}
-                  text={<>Toca <strong>"Añadir"</strong> y abre la app</>} />
-              </>
-            )}
-          </div>
-        )}
+        <div className="w-full border-2 border-black rounded-2xl p-5 shadow-[6px_6px_0px_#000] mb-6">
+          {platform === 'ios' && (
+            <div className="flex flex-col gap-5">
+              <p className="font-black text-sm text-center border-b-2 border-black pb-3">
+                Instalar en iPhone / iPad
+              </p>
+              <Step num={1} icon={<ShareIcon />}
+                text={<>Toca el botón <strong>Compartir</strong> en la barra de Safari</>} />
+              <Step num={2} icon={<PlusSquareIcon />}
+                text={<>Desplázate y toca <strong>"Agregar a pantalla de inicio"</strong></>} />
+              <Step num={3} icon={<HomeIcon />}
+                text={<>Toca <strong>"Agregar"</strong> y abre la app desde tu pantalla de inicio</>} />
+            </div>
+          )}
+
+          {platform === 'android' && (
+            <div className="flex flex-col gap-5">
+              <p className="font-black text-sm text-center border-b-2 border-black pb-3">
+                Instalar en Android
+              </p>
+              {deferredPrompt ? (
+                <button
+                  onClick={androidInstall}
+                  disabled={installing}
+                  className="brutal-btn flex items-center justify-center gap-2 w-full py-3 disabled:opacity-50"
+                >
+                  <DownloadIcon />
+                  {installing ? 'Instalando...' : 'Instalar aplicación'}
+                </button>
+              ) : (
+                <>
+                  <Step num={1} icon={<DotsIcon />}
+                    text={<>Toca el menú <strong>de Chrome</strong> (tres puntos arriba a la derecha)</>} />
+                  <Step num={2} icon={<PlusSquareIcon />}
+                    text={<>Selecciona <strong>"Añadir a pantalla de inicio"</strong></>} />
+                  <Step num={3} icon={<HomeIcon />}
+                    text={<>Toca <strong>"Añadir"</strong> y abre la app desde tu pantalla de inicio</>} />
+                </>
+              )}
+            </div>
+          )}
+
+          {platform === 'desktop' && (
+            <div className="flex flex-col gap-5">
+              <p className="font-black text-sm text-center border-b-2 border-black pb-3">
+                Instalar en computadora
+              </p>
+              {deferredPrompt ? (
+                <button
+                  onClick={androidInstall}
+                  disabled={installing}
+                  className="brutal-btn flex items-center justify-center gap-2 w-full py-3 disabled:opacity-50"
+                >
+                  <DownloadIcon />
+                  {installing ? 'Instalando...' : 'Instalar aplicación'}
+                </button>
+              ) : (
+                <>
+                  <Step num={1} icon={<MonitorIcon />}
+                    text={<>Busca el ícono de instalación en la <strong>barra de direcciones</strong> del navegador</>} />
+                  <Step num={2} icon={<DownloadIcon />}
+                    text={<>Haz clic en <strong>"Instalar"</strong> o <strong>"Agregar a aplicaciones"</strong></>} />
+                  <Step num={3} icon={<HomeIcon />}
+                    text={<>Abre la app desde el <strong>escritorio o menú de inicio</strong></>} />
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
+        <p className="text-xs text-gray-400 text-center max-w-xs font-medium">
+          La app debe estar instalada para poder usarla correctamente.
+        </p>
       </div>
-
-      <p className="text-xs text-gray-400 text-center max-w-xs font-medium">
-        La app debe estar instalada en tu dispositivo para poder usarla. No funciona desde el navegador.
-      </p>
     </div>
   )
 }
