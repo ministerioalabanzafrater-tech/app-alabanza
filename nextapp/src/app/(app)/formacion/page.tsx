@@ -1,5 +1,5 @@
 import { Card, CardTitle, CardDescription } from '@/components/ui/Card'
-import { Download, Music } from 'lucide-react'
+import { Download, Music, GraduationCap } from 'lucide-react'
 import Link from 'next/link'
 
 const NOTAS = ['Do', 'Re', 'Mi', 'Fa', 'Sol', 'La', 'Si']
@@ -27,7 +27,10 @@ const METRICAS = [
 export default function FormacionPage() {
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="font-black text-3xl mb-2">🎓 Formación Musical</h1>
+      <h1 className="font-black text-3xl mb-2 flex items-center gap-2">
+        <GraduationCap size={28} />
+        Formación Musical
+      </h1>
       <p className="text-gray-500 font-medium mb-8">
         Curso Práctico de Generalidades Musicales — Alabanza Frater Sv.
       </p>

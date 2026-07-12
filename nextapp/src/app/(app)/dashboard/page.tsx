@@ -84,7 +84,7 @@ export default async function DashboardPage() {
 
         {/* Cumpleaños */}
         <Card size="lg">
-          <CardTitle>🎂 Cumpleaños</CardTitle>
+          <CardTitle className="flex items-center gap-2"><Cake size={18} /> Cumpleaños</CardTitle>
           <CardDescription className="mb-4">Próximos 30 días</CardDescription>
           {upcomingBirthdays.length > 0 ? (
             <ul className="flex flex-col gap-3">

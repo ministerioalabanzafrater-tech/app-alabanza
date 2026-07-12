@@ -8,19 +8,19 @@ import { Button } from '@/components/ui/Button'
 import type { Profile, InstrumentType, VoiceType } from '@/types/database'
 
 const INSTRUMENTS: { value: InstrumentType; label: string }[] = [
-  { value: 'guitarra', label: '🎸 Guitarra' },
-  { value: 'bajo', label: '🎸 Bajo' },
-  { value: 'bateria', label: '🥁 Batería' },
-  { value: 'teclado', label: '🎹 Teclado' },
-  { value: 'piano', label: '🎹 Piano' },
-  { value: 'violin', label: '🎻 Violín' },
-  { value: 'cello', label: '🎻 Cello' },
-  { value: 'trompeta', label: '🎺 Trompeta' },
-  { value: 'saxofon', label: '🎷 Saxofón' },
-  { value: 'flauta', label: '🪈 Flauta' },
-  { value: 'voz', label: '🎤 Voz' },
-  { value: 'director', label: '🎼 Director' },
-  { value: 'otro', label: '🎵 Otro' },
+  { value: 'guitarra', label: 'Guitarra' },
+  { value: 'bajo',     label: 'Bajo' },
+  { value: 'bateria',  label: 'Batería' },
+  { value: 'teclado',  label: 'Teclado' },
+  { value: 'piano',    label: 'Piano' },
+  { value: 'violin',   label: 'Violín' },
+  { value: 'cello',    label: 'Cello' },
+  { value: 'trompeta', label: 'Trompeta' },
+  { value: 'saxofon',  label: 'Saxofón' },
+  { value: 'flauta',   label: 'Flauta' },
+  { value: 'voz',      label: 'Voz' },
+  { value: 'director', label: 'Director' },
+  { value: 'otro',     label: 'Otro' },
 ]
 
 const VOICES: { value: VoiceType; label: string }[] = [

@@ -1,6 +1,7 @@
 'use client'
 
 import { Menu, Bell } from 'lucide-react'
+import InstrumentIcon from '@/components/InstrumentIcon'
 import type { Profile } from '@/types/database'
 
 interface NavbarProps {
@@ -8,14 +9,7 @@ interface NavbarProps {
   onMenuClick: () => void
 }
 
-const INSTRUMENT_EMOJI: Record<string, string> = {
-  guitarra: '🎸', bajo: '🎸', bateria: '🥁', teclado: '🎹',
-  piano: '🎹', violin: '🎻', cello: '🎻', trompeta: '🎺',
-  saxofon: '🎷', flauta: '🪈', voz: '🎤', director: '🎼', otro: '🎵',
-}
-
 export default function Navbar({ profile, onMenuClick }: NavbarProps) {
-  const emoji = profile?.instrument ? INSTRUMENT_EMOJI[profile.instrument] ?? '🎵' : '🎵'
   const initials = profile?.full_name
     ? profile.full_name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
     : '?'
@@ -46,8 +40,9 @@ export default function Navbar({ profile, onMenuClick }: NavbarProps) {
           </div>
           <div className="hidden sm:block">
             <p className="text-xs font-bold leading-tight">{profile?.full_name ?? 'Usuario'}</p>
-            <p className="text-xs text-gray-500 leading-tight capitalize">
-              {emoji} {profile?.role === 'admin' ? 'Admin' : profile?.instrument ?? 'Músico'}
+            <p className="text-xs text-gray-500 leading-tight capitalize flex items-center gap-1">
+              <InstrumentIcon instrument={profile?.instrument} size={13} />
+              {profile?.role === 'admin' ? 'Admin' : profile?.instrument ?? 'Músico'}
             </p>
           </div>
         </div>

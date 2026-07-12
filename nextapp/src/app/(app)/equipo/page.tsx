@@ -1,14 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
-import { Users } from 'lucide-react'
+import { Users, Cake } from 'lucide-react'
+import InstrumentIcon from '@/components/InstrumentIcon'
 import type { Profile } from '@/types/database'
-
-const INSTRUMENT_EMOJI: Record<string, string> = {
-  guitarra: '🎸', bajo: '🎸', bateria: '🥁', teclado: '🎹',
-  piano: '🎹', violin: '🎻', cello: '🎻', trompeta: '🎺',
-  saxofon: '🎷', flauta: '🪈', voz: '🎤', director: '🎼', otro: '🎵',
-}
 
 function getAge(birthday: string): number {
   const today = new Date()
@@ -31,7 +26,6 @@ export default async function EquipoPage() {
   const musicians = profiles.filter(p => p.role === 'musician')
 
   function ProfileCard({ p }: { p: Profile }) {
-    const emoji = p.instrument ? INSTRUMENT_EMOJI[p.instrument] ?? '🎵' : '🎵'
     const initials = p.full_name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
     return (
       <Card className="flex items-start gap-4">
@@ -43,12 +37,14 @@ export default async function EquipoPage() {
             <p className="font-black">{p.full_name}</p>
             {p.role === 'admin' && <Badge variant="filled">Admin</Badge>}
           </div>
-          <p className="text-sm text-gray-500 font-medium capitalize">
-            {emoji} {p.instrument ?? p.voice ?? 'músico'}
+          <p className="text-sm text-gray-500 font-medium capitalize flex items-center gap-1">
+            <InstrumentIcon instrument={p.instrument} size={15} />
+            {p.instrument ?? p.voice ?? 'músico'}
           </p>
           {p.birthday && (
-            <p className="text-xs text-gray-400 font-medium mt-0.5">
-              🎂 {getAge(p.birthday)} años · {new Date(p.birthday).toLocaleDateString('es-SV', { day: 'numeric', month: 'long' })}
+            <p className="text-xs text-gray-400 font-medium mt-0.5 flex items-center gap-1">
+              <Cake size={12} />
+              {getAge(p.birthday)} años · {new Date(p.birthday).toLocaleDateString('es-SV', { day: 'numeric', month: 'long' })}
             </p>
           )}
           {p.phone && (
