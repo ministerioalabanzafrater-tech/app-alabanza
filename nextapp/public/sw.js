@@ -1,9 +1,7 @@
-const CACHE_NAME = 'alabanza-v1'
+const CACHE_NAME = 'alabanza-v2'
 
 // Rutas a pre-cachear en instalación
 const PRECACHE_URLS = [
-  '/',
-  '/dashboard',
   '/offline',
   '/manifest.json',
 ]
