@@ -82,14 +82,14 @@ function MonitorIcon() {
 // ── STEPS ─────────────────────────────────────────────────────────────────────
 function Step({ num, icon, text }: { num: number; icon: React.ReactNode; text: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-4">
-      <span className="w-8 h-8 rounded-full bg-black text-white text-sm font-black flex items-center justify-center shrink-0">
+    <div className="flex items-center gap-3">
+      <span className="w-7 h-7 rounded-full bg-black text-white text-xs font-black flex items-center justify-center shrink-0">
         {num}
       </span>
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <span className="p-1.5 bg-gray-100 rounded-lg shrink-0">{icon}</span>
-        {text}
-      </div>
+      <span className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
+        {icon}
+      </span>
+      <span className="text-sm font-medium leading-snug flex-1">{text}</span>
     </div>
   )
 }
@@ -150,11 +150,11 @@ export default function InstallPrompt() {
                 Instalar en iPhone / iPad
               </p>
               <Step num={1} icon={<ShareIcon />}
-                text={<>Toca el botón <strong>Compartir</strong> en la barra de Safari</>} />
+                text={<>Toca <strong>Compartir</strong> en la barra de Safari</>} />
               <Step num={2} icon={<PlusSquareIcon />}
-                text={<>Desplázate y toca <strong>"Agregar a pantalla de inicio"</strong></>} />
+                text={<>Selecciona <strong>"Agregar a pantalla de inicio"</strong></>} />
               <Step num={3} icon={<HomeIcon />}
-                text={<>Toca <strong>"Agregar"</strong> y abre la app desde tu pantalla de inicio</>} />
+                text={<>Toca <strong>"Agregar"</strong> y ábrela desde tu pantalla de inicio</>} />
             </div>
           )}
 
@@ -175,7 +175,7 @@ export default function InstallPrompt() {
               ) : (
                 <>
                   <Step num={1} icon={<DotsIcon />}
-                    text={<>Toca el menú <strong>de Chrome</strong> (tres puntos arriba a la derecha)</>} />
+                    text={<>Toca el menú <strong>⋮</strong> de Chrome (arriba a la derecha)</>} />
                   <Step num={2} icon={<PlusSquareIcon />}
                     text={<>Selecciona <strong>"Añadir a pantalla de inicio"</strong></>} />
                   <Step num={3} icon={<HomeIcon />}
