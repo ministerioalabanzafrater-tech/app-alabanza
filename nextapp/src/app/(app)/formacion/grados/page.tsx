@@ -143,7 +143,7 @@ function QuizEngine({ questions }: { questions: QuizQ[] }) {
           const isCorrect  = opt === q.a
           const isSelected = picked === opt
           const isDone     = picked !== null
-          let cls = 'border-2 border-black px-3 py-2.5 font-bold text-sm transition-colors text-left'
+          let cls = 'border-2 border-black rounded-xl px-3 py-2.5 font-bold text-sm transition-colors text-left'
           if (isDone) {
             if (isCorrect) cls += ' bg-black text-white'
             else if (isSelected) cls += ' border-red-600 text-red-600'
@@ -230,7 +230,7 @@ function ConversionMenores() {
         {majorNotes.map((note, i) => {
           const isAlt = MINOR_ALTERED.includes(i)
           const isSel = selected.has(i)
-          let cls = 'flex flex-col items-center px-3 py-2 border-2 border-black text-sm font-bold min-w-[48px] transition-colors'
+          let cls = 'flex flex-col items-center px-3 py-2 border-2 border-black rounded-xl text-sm font-bold min-w-[48px] transition-colors'
           if (checked) {
             if (isAlt)    cls += ' bg-black text-white'
             else if (isSel) cls += ' border-red-600 text-red-600'
@@ -265,7 +265,7 @@ function ScaleTable({ db, alteredIdx, qualities, headerSteps }: {
   db: Record<string, string[]>; alteredIdx: number[]; qualities: string[]; headerSteps: string[]
 }) {
   return (
-    <div className="overflow-x-auto border-2 border-black">
+    <div className="overflow-x-auto border-2 border-black rounded-2xl">
       <table className="w-full border-collapse text-center" style={{ minWidth: 700 }}>
         <thead className="bg-black text-white">
           <tr>
@@ -385,7 +385,7 @@ export default function GradosPage() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <Link href="/formacion" className="p-2 border-2 border-black hover:bg-black hover:text-white transition-colors">
+        <Link href="/formacion" className="p-2 border-2 border-black rounded-xl hover:bg-black hover:text-white transition-colors">
           <ArrowLeft size={18} />
         </Link>
         <div>
@@ -394,10 +394,10 @@ export default function GradosPage() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-1 border-2 border-black p-1 mb-8 w-fit">
+      <div className="flex flex-wrap gap-1 border-2 border-black rounded-2xl p-1 mb-8 w-fit">
         {tabs.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)}
-            className={`px-4 py-2 font-bold text-sm transition-colors ${tab === t.id ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
+            className={`px-4 py-2 font-bold text-sm rounded-xl transition-colors ${tab === t.id ? 'bg-black text-white' : 'hover:bg-gray-100'}`}>
             {t.label}
           </button>
         ))}
@@ -436,12 +436,12 @@ export default function GradosPage() {
                 <div>
                   <p className="font-bold text-sm mb-1">Escala Mayor</p>
                   <p className="text-xs text-gray-400 mb-2">Sonido brillante y "alegre"</p>
-                  <div className="bg-gray-100 border-l-4 border-black p-3 font-mono font-bold">T – T – S – T – T – T – S</div>
+                  <div className="bg-gray-100 border-l-4 border-black rounded-lg p-3 font-mono font-bold">T – T – S – T – T – T – S</div>
                 </div>
                 <div>
                   <p className="font-bold text-sm mb-1">Escala Menor Natural</p>
                   <p className="text-xs text-gray-400 mb-2">Sonido oscuro o melancólico</p>
-                  <div className="bg-gray-100 border-l-4 border-black p-3 font-mono font-bold">T – S – T – T – S – T – T</div>
+                  <div className="bg-gray-100 border-l-4 border-black rounded-lg p-3 font-mono font-bold">T – S – T – T – S – T – T</div>
                 </div>
               </div>
             </div>
@@ -459,13 +459,13 @@ export default function GradosPage() {
             <p className="text-sm text-gray-600 mb-3">Partiendo de la raíz (I), cada nota siguiente se obtiene sumando T o S en orden fijo. Esa distancia obliga a usar # o b cuando la nota natural no cae en el lugar correcto.</p>
             <div className="flex flex-wrap gap-2 mb-3">
               {ROMAN.map((r, i) => (
-                <div key={r} className="flex flex-col items-center border-2 border-black px-2 py-1 text-xs font-bold min-w-[42px] text-center">
+                <div key={r} className="flex flex-col items-center border-2 border-black rounded-lg px-2 py-1 text-xs font-bold min-w-[42px] text-center">
                   <span>{r}</span>
                   <span className="text-[9px] font-normal text-gray-400">{MAJOR_STEPS[i]}</span>
                 </div>
               ))}
             </div>
-            <div className="bg-gray-100 border-l-4 border-black p-3 font-mono font-bold text-sm">T – T – S – T – T – T – S</div>
+            <div className="bg-gray-100 border-l-4 border-black rounded-lg p-3 font-mono font-bold text-sm">T – T – S – T – T – T – S</div>
           </div>
           <ScaleTable db={majorScales} alteredIdx={[]} qualities={MAJOR_QUALITIES} headerSteps={MAJOR_STEPS} />
           <h2 className="font-black text-xl mt-6 mb-4 border-b-2 border-black pb-2">Ejercicios</h2>
@@ -481,19 +481,19 @@ export default function GradosPage() {
             <p className="text-sm text-gray-600 mb-3">La fórmula cambia: el tercer paso es S en vez de T, y los pasos 5 y 7 también son S. Eso obliga a bajar los grados <strong>III, VI y VII</strong> un semitono respecto a la Mayor.</p>
             <div className="flex flex-wrap gap-2 mb-3">
               {['I','II','III ♭','IV','V','VI ♭','VII ♭'].map((r, i) => (
-                <div key={r} className={`flex flex-col items-center border-2 border-black px-2 py-1 text-xs font-bold min-w-[42px] text-center ${MINOR_ALTERED.includes(i) ? 'bg-black text-white' : ''}`}>
+                <div key={r} className={`flex flex-col items-center border-2 border-black rounded-lg px-2 py-1 text-xs font-bold min-w-[42px] text-center ${MINOR_ALTERED.includes(i) ? 'bg-black text-white' : ''}`}>
                   <span>{r}</span>
                   <span className={`text-[9px] font-normal ${MINOR_ALTERED.includes(i) ? 'text-gray-400' : 'text-gray-400'}`}>{MINOR_STEPS[i]}</span>
                 </div>
               ))}
             </div>
-            <div className="bg-gray-100 border-l-4 border-black p-3 font-mono font-bold text-sm">T – S – T – T – S – T – T</div>
+            <div className="bg-gray-100 border-l-4 border-black rounded-lg p-3 font-mono font-bold text-sm">T – S – T – T – S – T – T</div>
           </div>
           <div className="grid md:grid-cols-2 gap-4 mb-4">
             <div className="brutal-card">
               <p className="font-bold text-sm mb-1">El III baja un semitono (♭3)</p>
               <p className="text-xs text-gray-500 mb-2">I→III en Mayor es T+T. En menor es T+S, por eso el III queda un semitono abajo.</p>
-              <div className="bg-gray-100 border-l-4 border-black p-2 text-xs font-mono">
+              <div className="bg-gray-100 border-l-4 border-black rounded-lg p-2 text-xs font-mono">
                 C Mayor: C – D – <strong>E</strong> – F – G – A – B<br />
                 C Menor: C – D – <strong>Eb</strong> – F – G – Ab – Bb
               </div>
@@ -501,7 +501,7 @@ export default function GradosPage() {
             <div className="brutal-card">
               <p className="font-bold text-sm mb-1">El VI y VII también bajan (♭6 · ♭7)</p>
               <p className="text-xs text-gray-500 mb-2">V→VI en menor es S, así VI queda un semitono abajo. VII le sigue desde ese VI bemolizado.</p>
-              <div className="bg-gray-100 border-l-4 border-black p-2 text-xs font-mono">
+              <div className="bg-gray-100 border-l-4 border-black rounded-lg p-2 text-xs font-mono">
                 C Mayor: G – <strong>A</strong> – <strong>B</strong><br />
                 C Menor: G – <strong>Ab</strong> – <strong>Bb</strong>
               </div>
@@ -517,8 +517,8 @@ export default function GradosPage() {
       {tab === 'trivia' && (
         <div className="max-w-2xl mx-auto">
           <div className="flex justify-center gap-4 mb-6">
-            <div className="border-2 border-black px-4 py-1.5 font-bold text-sm">Racha: {score}</div>
-            <div className="border-2 border-black px-3 py-1.5 font-bold text-sm flex gap-1 items-center">
+            <div className="border-2 border-black rounded-full px-4 py-1.5 font-bold text-sm">Racha: {score}</div>
+            <div className="border-2 border-black rounded-full px-3 py-1.5 font-bold text-sm flex gap-1 items-center">
               {[0,1,2].map(i => (
                 <svg key={i} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18"
                   fill={i < lives ? '#e53e3e' : 'none'} stroke="#e53e3e" strokeWidth="1.5">
@@ -526,7 +526,7 @@ export default function GradosPage() {
                 </svg>
               ))}
             </div>
-            <div className="bg-black text-white px-4 py-1.5 font-bold text-sm">Récord: {highScore}</div>
+            <div className="bg-black text-white rounded-full px-4 py-1.5 font-bold text-sm">Récord: {highScore}</div>
           </div>
 
           {phase === 'start' && (
@@ -548,7 +548,7 @@ export default function GradosPage() {
                   const isCorrect  = opt === triviaQ.answer
                   const isSelected = triviaAns === opt
                   const isDone     = triviaAns !== null
-                  let cls = 'border-2 border-black px-4 py-3 font-bold text-sm transition-colors'
+                  let cls = 'border-2 border-black rounded-xl px-4 py-3 font-bold text-sm transition-colors'
                   if (isDone) {
                     if (isCorrect) cls += ' bg-black text-white'
                     else if (isSelected) cls += ' border-red-600 text-red-600'
@@ -581,7 +581,7 @@ export default function GradosPage() {
                 <a
                   href={`https://api.whatsapp.com/send?text=${encodeURIComponent(`Practiqué teoría musical de escalas y logré ${lastScore} puntos en Alabanza Frater. ¿Puedes superarme?`)}`}
                   target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 border-2 px-5 py-2.5 font-bold text-sm"
+                  className="flex items-center gap-2 border-2 rounded-xl px-5 py-2.5 font-bold text-sm"
                   style={{ borderColor: '#25D366', color: '#25D366' }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
