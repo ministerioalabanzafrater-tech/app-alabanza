@@ -1,15 +1,14 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 
 export default function RegistroPage() {
-  const router = useRouter()
+  const [nombre, setNombre] = useState('')
+  const [apellido, setApellido] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
@@ -32,7 +31,13 @@ export default function RegistroPage() {
 
     setLoading(true)
     const supabase = createClient()
-    const { error } = await supabase.auth.signUp({ email, password })
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { nombre, apellido, full_name: `${nombre} ${apellido}` },
+      },
+    })
 
     if (error) {
       setError(error.message)
@@ -64,9 +69,7 @@ export default function RegistroPage() {
     <main className="min-h-screen flex items-center justify-center p-4 bg-white">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 relative mb-3">
-            <Image src="/logo.png" alt="Logo" fill className="object-contain" />
-          </div>
+          <img src="/logo.png" alt="Logo" className="w-16 h-16 object-contain mb-3" />
           <h1 className="font-black text-2xl text-center leading-tight">Alabanza Frater</h1>
           <p className="text-sm text-gray-500 font-medium mt-1">Crear cuenta</p>
         </div>
@@ -74,6 +77,28 @@ export default function RegistroPage() {
         <div className="brutal-card-lg">
           <h2 className="font-black text-xl mb-5">Registro</h2>
           <form onSubmit={handleRegister} className="flex flex-col gap-4">
+            <div className="flex gap-3">
+              <Input
+                id="nombre"
+                label="Nombre"
+                type="text"
+                placeholder="Juan"
+                value={nombre}
+                onChange={e => setNombre(e.target.value)}
+                required
+                autoComplete="given-name"
+              />
+              <Input
+                id="apellido"
+                label="Apellido"
+                type="text"
+                placeholder="Pérez"
+                value={apellido}
+                onChange={e => setApellido(e.target.value)}
+                required
+                autoComplete="family-name"
+              />
+            </div>
             <Input
               id="email"
               label="Correo electrónico"

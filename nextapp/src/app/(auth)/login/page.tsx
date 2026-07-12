@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
-import Image from 'next/image'
+
 
 export default function LoginPage() {
   const router = useRouter()
@@ -38,9 +38,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 relative mb-3">
-            <Image src="/logo.png" alt="Logo" fill className="object-contain" />
-          </div>
+          <img src="/logo.png" alt="Logo" className="w-16 h-16 object-contain mb-3" />
           <h1 className="font-black text-2xl text-center leading-tight">Alabanza Frater</h1>
           <p className="text-sm text-gray-500 font-medium mt-1">Panel de gestión musical</p>
         </div>
