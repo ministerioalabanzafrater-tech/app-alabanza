@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Music2, ExternalLink, Download, Play, Pause, Trash2, Loader2, FolderOpen } from 'lucide-react'
+import { ArrowLeft, Music2, ExternalLink, Play, Pause, Trash2, Loader2, FolderOpen } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import type { Song } from '@/types/database'
@@ -286,16 +286,13 @@ export default function CancionDetail({ song }: { song: Song }) {
 
         {audioState === 'idle' && (
           <div className="flex flex-col gap-2">
-            {song.youtube_url && (
-              <button onClick={loadFromYouTube}
-                className="brutal-btn flex items-center gap-2 w-full justify-center">
-                <Download size={15} /> Descargar de YouTube
-              </button>
-            )}
             <button onClick={() => fileRef.current?.click()}
-              className="brutal-btn-outline flex items-center gap-2 w-full justify-center text-sm">
+              className="brutal-btn flex items-center gap-2 w-full justify-center">
               <FolderOpen size={15} /> Cargar archivo de audio
             </button>
+            <p className="text-xs text-gray-400 text-center">
+              MP3, M4A, OGG u otro formato de audio
+            </p>
           </div>
         )}
 
@@ -308,18 +305,11 @@ export default function CancionDetail({ song }: { song: Song }) {
         {audioState === 'error' && (
           <div className="flex flex-col gap-3">
             <p className="text-xs font-bold text-red-600 border border-red-200 bg-red-50 dark:bg-red-900/20 px-3 py-2">
-              {audioError || 'Error al cargar audio'}
+              {audioError || 'Error al leer el archivo'}
             </p>
-            <div className="flex gap-2">
-              {song.youtube_url && (
-                <button onClick={loadFromYouTube} className="brutal-btn-outline text-xs flex-1">
-                  Reintentar YouTube
-                </button>
-              )}
-              <button onClick={() => fileRef.current?.click()} className="brutal-btn text-xs flex-1 flex items-center gap-1 justify-center">
-                <FolderOpen size={13} /> Cargar archivo
-              </button>
-            </div>
+            <button onClick={() => fileRef.current?.click()} className="brutal-btn flex items-center gap-2 justify-center">
+              <FolderOpen size={14} /> Cargar otro archivo
+            </button>
           </div>
         )}
 
