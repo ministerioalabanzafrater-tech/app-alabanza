@@ -1,4 +1,4 @@
-const CACHE_NAME = 'alabanza-v2'
+const CACHE_NAME = 'alabanza-v3'
 
 // Rutas a pre-cachear en instalación
 const PRECACHE_URLS = [
@@ -62,6 +62,35 @@ self.addEventListener('fetch', (event) => {
             })
           }
         })
+    })
+  )
+})
+
+// ── PUSH NOTIFICATIONS ────────────────────────────────────────────────────────
+self.addEventListener('push', (event) => {
+  if (!event.data) return
+  let payload = { title: 'Alabanza Frater', body: '', url: '/' }
+  try { payload = { ...payload, ...event.data.json() } } catch { payload.body = event.data.text() }
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: '/icons/icon-192.png',
+      badge: '/icons/icon-192.png',
+      data: { url: payload.url },
+      vibrate: [100, 50, 100],
+    })
+  )
+})
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const url = event.notification.data?.url ?? '/'
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      const existing = list.find(c => c.url.includes(url))
+      if (existing) return existing.focus()
+      return clients.openWindow(url)
     })
   )
 })

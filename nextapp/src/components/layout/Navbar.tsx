@@ -1,7 +1,8 @@
 'use client'
 
-import { Menu, Bell } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import InstrumentIcon from '@/components/InstrumentIcon'
+import NotificationPanel from '@/components/NotificationPanel'
 import type { Profile } from '@/types/database'
 
 interface NavbarProps {
@@ -30,9 +31,7 @@ export default function Navbar({ profile, onMenuClick }: NavbarProps) {
 
       {/* Right side */}
       <div className="flex items-center gap-3 ml-auto">
-        <button className="p-2 border-2 border-black hover:bg-black hover:text-white transition-colors relative">
-          <Bell size={18} />
-        </button>
+        <NotificationPanel />
 
         <div className="flex items-center gap-2 border-2 border-black px-3 py-1.5">
           <div className="w-7 h-7 bg-black text-white flex items-center justify-center text-xs font-black">
