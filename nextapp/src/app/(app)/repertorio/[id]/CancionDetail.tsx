@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Music2, ExternalLink, Download, Play, Pause, Trash2, Loader2 } from 'lucide-react'
+import { ArrowLeft, Music2, ExternalLink, Download, Play, Pause, Trash2, Loader2, FolderOpen } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import type { Song } from '@/types/database'
@@ -61,13 +61,15 @@ export default function CancionDetail({ song }: { song: Song }) {
 
   // Audio
   const [audioState, setAudioState] = useState<AudioState>('idle')
+  const [audioError, setAudioError] = useState('')
   const [duration,   setDuration]   = useState(0)
   const [elapsed,    setElapsed]    = useState(0)
-  const ctxRef      = useRef<AudioContext | null>(null)
-  const bufferRef   = useRef<AudioBuffer | null>(null)
-  const srcRef      = useRef<AudioBufferSourceNode | null>(null)
-  const pausedAt    = useRef(0)
-  const startedAt   = useRef(0)
+  const ctxRef    = useRef<AudioContext | null>(null)
+  const bufferRef = useRef<AudioBuffer | null>(null)
+  const srcRef    = useRef<AudioBufferSourceNode | null>(null)
+  const pausedAt  = useRef(0)
+  const startedAt = useRef(0)
+  const fileRef   = useRef<HTMLInputElement | null>(null)
 
   const cacheKey = `/audio/${song.id}`
 
@@ -87,29 +89,66 @@ export default function CancionDetail({ song }: { song: Song }) {
     return () => clearInterval(id)
   }, [audioState])
 
-  async function loadAudio() {
-    // AudioContext must be created synchronously inside the user gesture
+  const decodeAndReady = useCallback(async (ab: ArrayBuffer) => {
+    const buffer = await ctxRef.current!.decodeAudioData(ab)
+    bufferRef.current = buffer
+    setDuration(buffer.duration)
+    setAudioState('ready')
+  }, [])
+
+  async function loadFromYouTube() {
     if (!ctxRef.current) ctxRef.current = new AudioContext()
+    setAudioError('')
     setAudioState('loading')
 
     try {
+      // 1. Check local cache first
       const cache = await caches.open(CACHE_NAME)
-      let response = await cache.match(cacheKey)
-
-      if (!response) {
-        const res = await fetch(`/api/audio/extract?url=${encodeURIComponent(song.youtube_url!)}`)
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
-        await cache.put(cacheKey, res.clone())
-        response = res
+      const cached = await cache.match(cacheKey)
+      if (cached) {
+        const ab = await cached.arrayBuffer()
+        return await decodeAndReady(ab)
       }
 
-      const ab     = await response.arrayBuffer()
-      const buffer = await ctxRef.current!.decodeAudioData(ab)
-      bufferRef.current = buffer
-      setDuration(buffer.duration)
-      setAudioState('ready')
+      // 2. Get signed CDN URL from server
+      const meta = await fetch(`/api/audio/extract?url=${encodeURIComponent(song.youtube_url!)}`)
+      if (!meta.ok) {
+        const { error } = await meta.json().catch(() => ({ error: `HTTP ${meta.status}` }))
+        throw new Error(error)
+      }
+      const { audioUrl, mimeType } = await meta.json()
+
+      // 3. Client fetches directly from YouTube CDN (avoids server IP block)
+      const res = await fetch(audioUrl)
+      if (!res.ok) throw new Error(`CDN HTTP ${res.status}`)
+
+      const ab = await res.arrayBuffer()
+
+      // 4. Store in device cache
+      await cache.put(cacheKey, new Response(ab.slice(0), { headers: { 'Content-Type': mimeType } }))
+
+      await decodeAndReady(ab)
     } catch (e: any) {
-      console.error('[loadAudio]', e)
+      console.error('[loadFromYouTube]', e)
+      setAudioError(e?.message ?? 'Error desconocido')
+      setAudioState('error')
+    }
+  }
+
+  async function loadFromFile(file: File) {
+    if (!ctxRef.current) ctxRef.current = new AudioContext()
+    setAudioError('')
+    setAudioState('loading')
+
+    try {
+      const ab = await file.arrayBuffer()
+      // Store in device cache for next time
+      const cache = await caches.open(CACHE_NAME)
+      await cache.put(cacheKey, new Response(ab.slice(0), { headers: { 'Content-Type': file.type || 'audio/mpeg' } }))
+      await decodeAndReady(ab)
+    } catch (e: any) {
+      console.error('[loadFromFile]', e)
+      setAudioError(e?.message ?? 'Error al leer archivo')
       setAudioState('error')
     }
   }
@@ -126,7 +165,7 @@ export default function CancionDetail({ song }: { song: Song }) {
     src.connect(ctx.destination)
     src.start(0, from)
 
-    srcRef.current  = src
+    srcRef.current    = src
     startedAt.current = ctx.currentTime - from
     setElapsed(from)
     setAudioState('playing')
@@ -232,69 +271,93 @@ export default function CancionDetail({ song }: { song: Song }) {
       )}
 
       {/* Audio player */}
-      {song.youtube_url && (
-        <Card className="mb-6">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Reproducción</p>
+      {/* Audio player — shown when there's a YouTube URL or always (file picker) */}
+      <Card className="mb-6">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Reproducción</p>
 
-          {audioState === 'idle' && (
-            <button onClick={loadAudio}
-              className="brutal-btn flex items-center gap-2 w-full justify-center">
-              <Download size={16} /> Descargar audio al dispositivo
+        {/* Hidden file input */}
+        <input
+          ref={fileRef}
+          type="file"
+          accept="audio/*"
+          className="hidden"
+          onChange={e => { const f = e.target.files?.[0]; if (f) loadFromFile(f); e.target.value = '' }}
+        />
+
+        {audioState === 'idle' && (
+          <div className="flex flex-col gap-2">
+            {song.youtube_url && (
+              <button onClick={loadFromYouTube}
+                className="brutal-btn flex items-center gap-2 w-full justify-center">
+                <Download size={15} /> Descargar de YouTube
+              </button>
+            )}
+            <button onClick={() => fileRef.current?.click()}
+              className="brutal-btn-outline flex items-center gap-2 w-full justify-center text-sm">
+              <FolderOpen size={15} /> Cargar archivo de audio
             </button>
-          )}
+          </div>
+        )}
 
-          {audioState === 'loading' && (
-            <div className="flex items-center gap-2 justify-center py-1 text-sm font-bold text-gray-400">
-              <Loader2 size={16} className="animate-spin" /> Descargando…
-            </div>
-          )}
+        {audioState === 'loading' && (
+          <div className="flex items-center gap-2 justify-center py-1 text-sm font-bold text-gray-400">
+            <Loader2 size={16} className="animate-spin" /> Cargando audio…
+          </div>
+        )}
 
-          {audioState === 'error' && (
-            <div className="flex flex-col gap-2">
-              <p className="text-sm font-bold text-red-600">Error al descargar audio</p>
-              <button onClick={loadAudio} className="brutal-btn-outline text-sm">Reintentar</button>
-            </div>
-          )}
-
-          {(audioState === 'ready' || audioState === 'playing') && (
-            <div className="flex items-center gap-3">
-              {/* Play / Pause */}
-              {audioState === 'playing' ? (
-                <button onClick={handlePause}
-                  className="w-11 h-11 bg-black text-white flex items-center justify-center border-2 border-black hover:bg-gray-800 transition-colors shrink-0">
-                  <Pause size={18} />
-                </button>
-              ) : (
-                <button onClick={handlePlay}
-                  className="w-11 h-11 bg-black text-white flex items-center justify-center border-2 border-black hover:bg-gray-800 transition-colors shrink-0">
-                  <Play size={18} />
+        {audioState === 'error' && (
+          <div className="flex flex-col gap-3">
+            <p className="text-xs font-bold text-red-600 border border-red-200 bg-red-50 dark:bg-red-900/20 px-3 py-2">
+              {audioError || 'Error al cargar audio'}
+            </p>
+            <div className="flex gap-2">
+              {song.youtube_url && (
+                <button onClick={loadFromYouTube} className="brutal-btn-outline text-xs flex-1">
+                  Reintentar YouTube
                 </button>
               )}
-
-              {/* Progress */}
-              <div className="flex-1 min-w-0">
-                <div className="h-1.5 bg-gray-200 w-full relative">
-                  <div
-                    className="h-full bg-black transition-all"
-                    style={{ width: duration ? `${(elapsed / duration) * 100}%` : '0%' }}
-                  />
-                </div>
-                <p className="text-xs font-mono text-gray-400 mt-1">
-                  {fmtTime(elapsed)} / {fmtTime(duration)}
-                  {offset !== 0 && <span className="ml-2 font-bold text-black">{effectiveKey}</span>}
-                </p>
-              </div>
-
-              {/* Delete cache */}
-              <button onClick={deleteAudio}
-                className="p-2 text-gray-300 hover:text-red-600 transition-colors shrink-0"
-                title="Borrar audio del dispositivo">
-                <Trash2 size={15} />
+              <button onClick={() => fileRef.current?.click()} className="brutal-btn text-xs flex-1 flex items-center gap-1 justify-center">
+                <FolderOpen size={13} /> Cargar archivo
               </button>
             </div>
-          )}
-        </Card>
-      )}
+          </div>
+        )}
+
+        {(audioState === 'ready' || audioState === 'playing') && (
+          <div className="flex items-center gap-3">
+            {audioState === 'playing' ? (
+              <button onClick={handlePause}
+                className="w-11 h-11 bg-black text-white flex items-center justify-center border-2 border-black hover:bg-gray-800 transition-colors shrink-0">
+                <Pause size={18} />
+              </button>
+            ) : (
+              <button onClick={handlePlay}
+                className="w-11 h-11 bg-black text-white flex items-center justify-center border-2 border-black hover:bg-gray-800 transition-colors shrink-0">
+                <Play size={18} />
+              </button>
+            )}
+
+            <div className="flex-1 min-w-0">
+              <div className="h-1.5 bg-gray-200 w-full">
+                <div
+                  className="h-full bg-black transition-all"
+                  style={{ width: duration ? `${Math.min((elapsed / duration) * 100, 100)}%` : '0%' }}
+                />
+              </div>
+              <p className="text-xs font-mono text-gray-400 mt-1">
+                {fmtTime(elapsed)} / {fmtTime(duration)}
+                {offset !== 0 && <span className="ml-2 font-bold text-black">{effectiveKey}</span>}
+              </p>
+            </div>
+
+            <button onClick={deleteAudio}
+              className="p-2 text-gray-300 hover:text-red-600 transition-colors shrink-0"
+              title="Borrar audio del dispositivo">
+              <Trash2 size={15} />
+            </button>
+          </div>
+        )}
+      </Card>
 
       {/* Lyrics */}
       {song.lyrics && (

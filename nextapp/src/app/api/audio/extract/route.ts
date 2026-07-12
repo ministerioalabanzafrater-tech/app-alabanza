@@ -10,28 +10,30 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const info   = await ytdl.getInfo(url)
+    const info = await ytdl.getInfo(url, {
+      requestOptions: {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+      },
+    })
+
     const format = ytdl.chooseFormat(info.formats, {
       quality: 'highestaudio',
       filter:  'audioonly',
     })
 
-    const stream = ytdl.downloadFromInfo(info, { format })
-
-    const readable = new ReadableStream<Uint8Array>({
-      start(controller) {
-        stream.on('data',  (chunk: Buffer) => controller.enqueue(new Uint8Array(chunk)))
-        stream.on('end',   ()              => controller.close())
-        stream.on('error', (err: Error)   => controller.error(err))
-      },
-      cancel() { stream.destroy() },
-    })
-
-    return new NextResponse(readable, {
-      headers: { 'Content-Type': format.mimeType ?? 'audio/mp4' },
+    // Return the signed CDN URL so the client can fetch directly
+    // (avoids server-side proxying and Netlify IP blocks)
+    return NextResponse.json({
+      audioUrl:      format.url,
+      mimeType:      format.mimeType ?? 'audio/mp4',
+      contentLength: format.contentLength,
     })
   } catch (err: any) {
-    console.error('[audio/extract]', err)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+    console.error('[audio/extract]', err?.message ?? err)
+    return NextResponse.json({ error: err?.message ?? 'Error desconocido' }, { status: 500 })
   }
 }

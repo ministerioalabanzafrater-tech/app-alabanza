@@ -67,9 +67,7 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() =>
           caches.match(request).then(
-            (cached) => cached ?? caches.match('/offline') ?? new Response('Sin conexión', {
-              headers: { 'Content-Type': 'text/plain' },
-            })
+            (cached) => cached ?? new Response('Sin conexión', { headers: { 'Content-Type': 'text/plain' } })
           )
         )
     )
