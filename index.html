@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grados Musicales | Plataforma de Aprendizaje</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #000000;
+            --white: #ffffff;
+            --gray-light: #f8f9fa;
+            --gray-border: #e2e8f0;
+            --gray-text: #4a5568;
+            --red-error: #e53e3e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Lexend', sans-serif;
+            background-color: var(--white);
+            color: var(--black);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+        }
+
+        /* --- Cabecera Principal --- */
+        header {
+            margin-bottom: 2.5rem;
+            text-align: center;
+        }
+
+        .header-logo {
+            max-width: 180px;
+            height: auto;
+            margin: 0 auto 1.5rem auto;
+            display: block;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            line-height: 1.1;
+            margin-bottom: 0.75rem;
+        }
+
+        p.subtitle {
+            font-size: 1.15rem;
+            font-weight: 300;
+            color: var(--gray-text);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* --- Navegación por Pestañas --- */
+        .tab-navigation {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+
+        .tab-control {
+            display: inline-flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 4px;
+            border: 2px solid var(--black);
+            padding: 4px;
+            border-radius: 12px;
+            background-color: var(--white);
+        }
+
+        .tab-btn {
+            font-family: 'Lexend', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 0.6rem 1.5rem;
+            background: none;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--gray-text);
+        }
+
+        .tab-btn.active {
+            background-color: var(--black);
+            color: var(--white);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Títulos de Sección --- */
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        h2::before {
+            content: "";
+            display: block;
+            width: 24px;
+            height: 4px;
+            background-color: var(--black);
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        /* --- CONTENIDO: FUNDAMENTOS --- */
+        .theory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .theory-card {
+            border: 2px solid var(--gray-border);
+            border-radius: 16px;
+            padding: 2rem;
+            background-color: var(--white);
+        }
+
+        .theory-card p {
+            color: var(--gray-text);
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .highlight-box {
+            background-color: var(--gray-light);
+            padding: 1rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--black);
+            margin-top: 1rem;
+            font-family: monospace;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .concept-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .symbol {
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+            width: 40px;
+            text-align: center;
+        }
+
+        /* --- CONTENIDO: TABLAS --- */
+        .table-section {
+            margin-bottom: 2rem;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            border: 2px solid var(--black);
+            border-radius: 16px;
+            background-color: var(--white);
+            box-shadow: 8px 8px 0px var(--gray-light);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            min-width: 850px;
+        }
+
+        thead {
+            background-color: var(--black);
+            color: var(--white);
+        }
+
+        th {
+            padding: 1.2rem 1rem;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        th.col-escala {
+            text-align: left;
+            padding-left: 2rem;
+            width: 18%;
+        }
+
+        td {
+            padding: 1.2rem 1rem;
+            font-weight: 400;
+            border-bottom: 1px solid var(--gray-border);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background-color: var(--gray-light);
+        }
+
+        td.cell-escala {
+            text-align: left;
+            padding-left: 2rem;
+            font-weight: 700;
+            background-color: var(--gray-light);
+            border-right: 2px solid var(--black);
+        }
+
+        /* --- CONTENIDO: TRIVIA INTERACTIVA --- */
+        .trivia-card {
+            background-color: var(--white);
+            border: 2px solid var(--black);
+            border-radius: 20px;
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            box-shadow: 12px 12px 0px var(--black);
+            max-width: 800px;
+            margin: 0 auto 2rem auto;
+        }
+
+        .score-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .score-badge {
+            background-color: var(--gray-light);
+            border: 2px solid var(--black);
+            color: var(--black);
+            padding: 0.4rem 1.2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .score-badge.highlight-score {
+            background-color: var(--black);
+            color: var(--white);
+        }
+
+        .question-box {
+            font-size: 1.6rem;
+            font-weight: 500;
+            margin-bottom: 3rem;
+            line-height: 1.4;
+            letter-spacing: -0.02em;
+        }
+
+        .highlight {
+            font-weight: 700;
+            background-color: var(--gray-light);
+            padding: 0.1rem 0.8rem;
+            border-radius: 8px;
+            border: 2px solid var(--black);
+            display: inline-block;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.25rem;
+            max-width: 650px;
+            margin: 0 auto 2.5rem auto;
+        }
+
+        button.option-btn {
+            font-family: 'Lexend', sans-serif;
+            font-size: 1.05rem; /* Reducido para encajar textos teóricos */
+            font-weight: 600;
+            padding: 1.2rem 1rem;
+            background-color: var(--white);
+            color: var(--black);
+            border: 2px solid var(--black);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        button.option-btn:hover:not(:disabled) {
+            background-color: var(--black);
+            color: var(--white);
+            transform: translateY(-2px);
+            box-shadow: 4px 4px 0px rgba(0,0,0,0.15);
+        }
+
+        button.option-btn:disabled {
+            cursor: default;
+        }
+
+        .feedback-area {
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .feedback-msg {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .feedback-msg.correct { color: var(--black); }
+        .feedback-msg.wrong { color: var(--red-error); }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            font-family: 'Lexend', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.8rem 2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: none;
+            text-decoration: none;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-next {
+            background-color: var(--black);
+            color: var(--white);
+            border: 2px solid var(--black);
+        }
+
+        .btn-next:hover {
+            background-color: #222;
+        }
+
+        .btn-whatsapp {
+            background-color: var(--white);
+            color: #25D366;
+            border: 2px solid #25D366;
+        }
+
+        .btn-whatsapp:hover {
+            background-color: #25D366;
+            color: var(--white);
+        }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding-top: 3rem;
+            border-top: 1px solid var(--gray-border);
+            font-size: 0.9rem;
+            color: var(--gray-text);
+        }
+
+        @media (max-width: 768px) {
+            .theory-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 2.2rem; }
+            .tab-btn { font-size: 0.85rem; padding: 0.5rem 1rem; }
+            .options-grid { grid-template-columns: 1fr; }
+            .question-box { font-size: 1.3rem; }
+            .score-container { flex-direction: column; gap: 0.5rem; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <img src="LogoAlabanzaFrater.png" alt="Logo Alabanza Frater" class="header-logo">
+            <h1>Grados Musicales</h1>
+            <p class="subtitle">Entrenamiento auditivo e intelectual interactivo para el dominio absoluto de la estructura tonal armónica.</p>
+        </header>
+
+        <!-- CONTROL DE PESTAÑAS (4 TABS) -->
+        <div class="tab-navigation">
+            <div class="tab-control">
+                <button class="tab-btn active" onclick="switchTab('fundamentos', this)">Fundamentos Armónicos</button>
+                <button class="tab-btn" onclick="switchTab('mayores', this)">Escalas Mayores</button>
+                <button class="tab-btn" onclick="switchTab('menores', this)">Escalas Menores (Naturales)</button>
+                <button class="tab-btn" onclick="switchTab('trivia', this)">Trivia Interactiva</button>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 1: FUNDAMENTOS ARMÓNICOS -->
+        <div id="tab-fundamentos" class="tab-content active">
+            <h2>Fundamentos Armónicos</h2>
+            <div class="theory-grid">
+                
+                <div class="theory-card">
+                    <h3>Unidades de Medida</h3>
+                    <p>La música occidental se divide matemáticamente en distancias precisas entre las notas.</p>
+                    <ul>
+                        <li><strong>Semitono (S):</strong> Es la distancia más pequeña posible (ej. ir de una tecla blanca del piano a la tecla negra inmediatamente al lado).</li>
+                        <li><strong>Tono (T):</strong> Equivale exactamente a la suma de dos semitonos.</li>
+                    </ul>
+                </div>
+
+                <div class="theory-card">
+                    <h3>Alteraciones (Accidentes)</h3>
+                    <p>Son símbolos que modifican la altura natural de una nota para ajustar las distancias y cumplir con las fórmulas de las escalas.</p>
+                    <div class="concept-row">
+                        <div class="symbol">#</div>
+                        <div><strong>Sostenido:</strong> Sube la nota medio tono (un semitono).</div>
+                    </div>
+                    <div class="concept-row">
+                        <div class="symbol">b</div>
+                        <div><strong>Bemol:</strong> Baja la nota medio tono (un semitono).</div>
+                    </div>
+                </div>
+
+                <div class="theory-card" style="grid-column: 1 / -1;">
+                    <h3>El "Porqué" de las Escalas</h3>
+                    <p>Las escalas no son notas al azar. Son plantillas matemáticas de Tonos y Semitonos que generan un "color" o "emoción" específica. Al aplicar estas plantillas empezando en diferentes notas, nos vemos obligados a usar Sostenidos (#) o Bemoles (b) para que la plantilla matemática se respete.</p>
+                    
+                    <div style="display: flex; flex-wrap: wrap; gap: 2rem; margin-top: 1.5rem;">
+                        <div style="flex: 1; min-width: 250px;">
+                            <strong>Estructura Escala Mayor</strong><br>
+                            <span style="font-size: 0.9rem; color: #666;">Produce un sonido brillante, estable y "alegre".</span>
+                            <div class="highlight-box">T - T - S - T - T - T - S</div>
+                        </div>
+                        <div style="flex: 1; min-width: 250px;">
+                            <strong>Estructura Escala Menor Natural</strong><br>
+                            <span style="font-size: 0.9rem; color: #666;">Produce un sonido oscuro, melancólico o de suspenso.</span>
+                            <div class="highlight-box">T - S - T - T - S - T - T</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 2: ESCALAS MAYORES -->
+        <div id="tab-mayores" class="tab-content">
+            <div class="table-section">
+                <h2>Escalas Mayores</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col-escala">Tonalidad</th>
+                                <th>I</th>
+                                <th>II</th>
+                                <th>III</th>
+                                <th>IV</th>
+                                <th>V</th>
+                                <th>VI</th>
+                                <th>VII</th>
+                            </tr>
+                        </thead>
+                        <tbody id="major-scales-tbody">
+                            <!-- Inyectado por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 3: ESCALAS MENORES (NATURALES) -->
+        <div id="tab-menores" class="tab-content">
+            <div class="table-section">
+                <h2>Escalas Menores (Naturales)</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col-escala">Tonalidad</th>
+                                <th>I</th>
+                                <th>II</th>
+                                <th>III</th>
+                                <th>IV</th>
+                                <th>V</th>
+                                <th>VI</th>
+                                <th>VII</th>
+                            </tr>
+                        </thead>
+                        <tbody id="minor-scales-tbody">
+                            <!-- Inyectado por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 4: TRIVIA INTERACTIVA -->
+        <div id="tab-trivia" class="tab-content">
+            <div class="trivia-card">
+                <div class="score-container">
+                    <div class="score-badge">Racha Actual: <span id="score-display">0</span></div>
+                    <div class="score-badge highlight-score">Mejor Récord: <span id="highscore-display">0</span></div>
+                </div>
+                
+                <div class="question-box" id="trivia-question">
+                    Cargando pregunta...
+                </div>
+                
+                <div class="options-grid" id="trivia-options">
+                    <!-- Botones inyectados por JS -->
+                </div>
+                
+                <div class="feedback-area">
+                    <div class="feedback-msg" id="trivia-feedback"></div>
+                    <div class="action-buttons">
+                        <button class="control-btn btn-next" id="trivia-next" onclick="generateTrivia()">Siguiente Pregunta →</button>
+                        <a class="control-btn btn-whatsapp" id="trivia-share" target="_blank">Compartir en WhatsApp</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Método didáctico riguroso de alto rendimiento para músicos.</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- BASE DE DATOS: ESCALAS MAYORES ---
+        const majorScales = {
+            "C Mayor":  ["C",  "D",  "E",  "F",  "G",  "A",  "B"],
+            "G Mayor":  ["G",  "A",  "B",  "C",  "D",  "E",  "F#"],
+            "D Mayor":  ["D",  "E",  "F#", "G",  "A",  "B",  "C#"],
+            "A Mayor":  ["A",  "B",  "C#", "D",  "E",  "F#", "G#"],
+            "E Mayor":  ["E",  "F#", "G#", "A",  "B",  "C#", "D#"],
+            "B Mayor":  ["B",  "C#", "D#", "E",  "F#", "G#", "A#"],
+            "F# Mayor": ["F#", "G#", "A#", "B",  "C#", "D#", "E#"],
+            "Db Mayor": ["Db", "Eb", "F",  "Gb", "Ab", "Bb", "C"],
+            "Ab Mayor": ["Ab", "Bb", "C",  "Db", "Eb", "F",  "G"],
+            "Eb Mayor": ["Eb", "F",  "G",  "Ab", "Bb", "C",  "D"],
+            "Bb Mayor": ["Bb", "C",  "D",  "Eb", "F",  "G",  "A"],
+            "F Mayor":  ["F",  "G",  "A",  "Bb", "C",  "D",  "E"]
+        };
+
+        // --- BASE DE DATOS: ESCALAS MENORES NATURALES ---
+        const minorScales = {
+            "A Menor":  ["A",  "B",  "C",  "D",  "E",  "F",  "G"],
+            "E Menor":  ["E",  "F#", "G",  "A",  "B",  "C",  "D"],
+            "B Menor":  ["B",  "C#", "D",  "E",  "F#", "G",  "A"],
+            "F# Menor": ["F#", "G#", "A",  "B",  "C#", "D",  "E"],
+            "C# Menor": ["C#", "D#", "E",  "F#", "G#", "A",  "B"],
+            "G# Menor": ["G#", "A#", "B",  "C#", "D#", "E",  "F#"],
+            "D# Menor": ["D#", "E#", "F#", "G#", "A#", "B",  "C#"],
+            "D Menor":  ["D",  "E",  "F",  "G",  "A",  "Bb", "C"],
+            "G Menor":  ["G",  "A",  "Bb", "C",  "D",  "Eb", "F"],
+            "C Menor":  ["C",  "D",  "Eb", "F",  "G",  "Ab", "Bb"],
+            "F Menor":  ["F",  "G",  "Ab", "Bb", "C",  "Db", "Eb"],
+            "Bb Menor": ["Bb", "C",  "Db", "Eb", "F",  "Gb", "Ab"]
+        };
+
+        // --- PREGUNTAS TEÓRICAS FUNDAMENTALES ---
+        const theoryQuestions = [
+            {
+                q: "¿Cuál es la distancia matemática más pequeña posible entre dos notas musicales?",
+                a: "Un Semitono",
+                options: ["Un Semitono", "Un Tono", "Un Sostenido", "Un Grado"]
+            },
+            {
+                q: "¿A qué equivale exactamente un Tono?",
+                a: "A la suma de dos semitonos",
+                options: ["A la suma de dos semitonos", "A un semitono", "A la suma de tres semitonos", "A medio semitono"]
+            },
+            {
+                q: "¿Qué efecto tiene un Sostenido (#) sobre una nota natural?",
+                a: "La sube un semitono",
+                options: ["La sube un semitono", "La baja un semitono", "La sube un tono", "La mantiene igual"]
+            },
+            {
+                q: "¿Qué efecto tiene un Bemol (b) sobre una nota natural?",
+                a: "La baja un semitono",
+                options: ["La baja un semitono", "La sube un semitono", "La baja un tono", "Sube la nota a la octava"]
+            },
+            {
+                q: "¿Cuál es la estructura matemática de distancias para construir una Escala Mayor?",
+                a: "T - T - S - T - T - T - S",
+                options: ["T - T - S - T - T - T - S", "T - S - T - T - S - T - T", "S - T - T - T - S - T - T", "T - T - T - S - T - T - S"]
+            },
+            {
+                q: "¿Cuál es la estructura matemática de distancias para una Escala Menor Natural?",
+                a: "T - S - T - T - S - T - T",
+                options: ["T - S - T - T - S - T - T", "T - T - S - T - T - T - S", "S - T - S - T - S - T - T", "T - T - T - S - T - S - T"]
+            }
+        ];
+
+        const romanNumerals = ["I", "II", "III", "IV", "V", "VI", "VII"];
+
+        // --- SISTEMA DE TABS ---
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            btnElement.classList.add('active');
+
+            if(tabId === 'trivia') {
+                if(document.getElementById("trivia-question").textContent.includes("Cargando")) {
+                    generateTrivia();
+                }
+            }
+        }
+
+        // --- RENDER DE TABLAS ---
+        function renderTable(dataObj, tbodyId) {
+            const tbody = document.getElementById(tbodyId);
+            for (const [scaleName, notes] of Object.entries(dataObj)) {
+                const tr = document.createElement('tr');
+                const tdName = document.createElement('td');
+                tdName.className = 'cell-escala';
+                tdName.textContent = scaleName;
+                tr.appendChild(tdName);
+
+                notes.forEach(note => {
+                    const tdNote = document.createElement('td');
+                    tdNote.textContent = note;
+                    tr.appendChild(tdNote);
+                });
+                tbody.appendChild(tr);
+            }
+        }
+
+        renderTable(majorScales, 'major-scales-tbody');
+        renderTable(minorScales, 'minor-scales-tbody');
+
+        // --- LÓGICA DE LA TRIVIA OMNICOMPRENSIVA ---
+        let currentAnswer = "";
+        let score = 0;
+        let highScore = 0;
+        let lastScoreBeforeReset = 0; 
+
+        function getRandomKey(obj) {
+            const keys = Object.keys(obj);
+            return keys[Math.floor(Math.random() * keys.length)];
+        }
+
+        function shuffleArray(array) {
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function generateTrivia() {
+            document.getElementById("trivia-feedback").textContent = "";
+            document.getElementById("trivia-feedback").className = "feedback-msg";
+            document.getElementById("trivia-next").style.display = "none";
+            document.getElementById("trivia-share").style.display = "none";
+            
+            // Elegir aleatoriamente el tipo de pregunta: Fundamental (33%), Escala Mayor (33%), Escala Menor (33%)
+            const questionCategories = ['fundamental', 'major', 'minor'];
+            const category = questionCategories[Math.floor(Math.random() * questionCategories.length)];
+
+            let questionHtml = "";
+            let options = [];
+
+            if (category === 'fundamental') {
+                // Generar pregunta teórica
+                const randomTheoryQ = theoryQuestions[Math.floor(Math.random() * theoryQuestions.length)];
+                questionHtml = randomTheoryQ.q;
+                currentAnswer = randomTheoryQ.a;
+                options = [...randomTheoryQ.options];
+            } else {
+                // Generar pregunta de grados para Escalas Mayores o Menores
+                const isMajor = category === 'major';
+                const scaleDB = isMajor ? majorScales : minorScales;
+                const scaleName = getRandomKey(scaleDB);
+                const scaleNotes = scaleDB[scaleName];
+                const degreeIndex = Math.floor(Math.random() * 7);
+                const degreeRoman = romanNumerals[degreeIndex];
+                const targetNote = scaleNotes[degreeIndex];
+
+                const isAskingForNote = Math.random() > 0.5;
+
+                if (isAskingForNote) {
+                    questionHtml = `En la escala de <span class="highlight">${scaleName}</span>,<br>¿Qué nota es el grado <span class="highlight">${degreeRoman}</span>?`;
+                    currentAnswer = targetNote;
+                    options.push(currentAnswer);
+                    while(options.length < 4) {
+                        let randomNote = scaleNotes[Math.floor(Math.random() * 7)];
+                        if(!options.includes(randomNote)) options.push(randomNote);
+                    }
+                } else {
+                    questionHtml = `En la escala de <span class="highlight">${scaleName}</span>,<br>¿Qué grado es la nota <span class="highlight">${targetNote}</span>?`;
+                    currentAnswer = degreeRoman;
+                    options.push(currentAnswer);
+                    while(options.length < 4) {
+                        let randomDegree = romanNumerals[Math.floor(Math.random() * 7)];
+                        if(!options.includes(randomDegree)) options.push(randomDegree);
+                    }
+                }
+            }
+
+            document.getElementById("trivia-question").innerHTML = questionHtml;
+
+            options = shuffleArray(options);
+            const optionsContainer = document.getElementById("trivia-options");
+            optionsContainer.innerHTML = "";
+            
+            options.forEach(opt => {
+                const btn = document.createElement("button");
+                btn.className = "option-btn";
+                btn.textContent = opt;
+                btn.onclick = () => handleAnswer(opt, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selectedVal, btnElement) {
+            const feedback = document.getElementById("trivia-feedback");
+            const nextBtn = document.getElementById("trivia-next");
+            const shareBtn = document.getElementById("trivia-share");
+            const allButtons = document.querySelectorAll(".option-btn");
+            
+            allButtons.forEach(btn => {
+                btn.disabled = true;
+                if(btn.textContent !== currentAnswer) btn.style.opacity = "0.3";
+            });
+
+            if (selectedVal === currentAnswer) {
+                score += 10;
+                if (score > highScore) {
+                    highScore = score;
+                    document.getElementById("highscore-display").textContent = highScore;
+                }
+                document.getElementById("score-display").textContent = score;
+                
+                feedback.textContent = "¡Correcto! Sigue así.";
+                feedback.className = "feedback-msg correct";
+                btnElement.style.backgroundColor = "var(--black)";
+                btnElement.style.color = "var(--white)";
+                btnElement.style.opacity = "1";
+                
+                nextBtn.textContent = "Siguiente Pregunta →";
+            } else {
+                lastScoreBeforeReset = score; 
+                score = 0; 
+                document.getElementById("score-display").textContent = score;
+
+                feedback.textContent = `Incorrecto. La respuesta era: ${currentAnswer}`;
+                feedback.className = "feedback-msg wrong";
+                
+                btnElement.style.borderColor = "var(--red-error)";
+                btnElement.style.color = "var(--red-error)";
+                btnElement.style.opacity = "1";
+
+                allButtons.forEach(btn => {
+                    if(btn.textContent === currentAnswer) {
+                        btn.style.backgroundColor = "var(--black)";
+                        btn.style.color = "var(--white)";
+                        btn.style.opacity = "1";
+                    }
+                });
+
+                nextBtn.textContent = "Volver a Intentar (Desde 0) ↻";
+                
+                const whatsappText = encodeURIComponent(`¡Estaba practicando teoría y escalas musicales y logré una racha de ${lastScoreBeforeReset} puntos antes de equivocarme! 🎶 ¿Puedes superarme en esta trivia interactiva?`);
+                shareBtn.href = `https://api.whatsapp.com/send?text=${whatsappText}`;
+                shareBtn.style.display = "inline-flex";
+            }
+
+            nextBtn.style.display = "inline-flex";
+        }
+
+        window.onload = () => {
+            generateTrivia();
+        };
+    </script>
+</body>
+</html>
