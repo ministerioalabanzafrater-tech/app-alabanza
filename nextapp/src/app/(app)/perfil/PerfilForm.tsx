@@ -60,11 +60,11 @@ export default function PerfilForm({ profile, userId }: { profile: Profile | nul
     const supabase = createClient()
     const { error } = await supabase.from('profiles').update({
       full_name: form.full_name.trim(),
-      phone: form.phone.trim() || null,
-      birthday: form.birthday || null,
-      instrument: (form.instrument as InstrumentType) || null,
-      voice: (form.voice as VoiceType) || null,
-      bio: form.bio.trim() || null,
+      phone: form.phone.trim() || undefined,
+      birthday: form.birthday || undefined,
+      instrument: (form.instrument as InstrumentType) || undefined,
+      voice: (form.voice as VoiceType) || undefined,
+      bio: form.bio.trim() || undefined,
     }).eq('id', userId)
 
     setLoading(false)
