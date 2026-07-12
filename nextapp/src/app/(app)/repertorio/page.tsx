@@ -37,27 +37,23 @@ export default async function RepertorioPage() {
       ) : (
         <div className="flex flex-col gap-3">
           {songs.map(song => (
-            <Card key={song.id} className="flex items-center justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <p className="font-black truncate">{song.title}</p>
-                {song.author && <p className="text-xs text-gray-500 font-medium">{song.author}</p>}
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                {song.key_note && <Badge>{song.key_note}</Badge>}
-                {song.bpm && <Badge>{song.bpm} BPM</Badge>}
-                {song.youtube_url && (
-                  <a
-                    href={song.youtube_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-1.5 border-2 border-black hover:bg-black hover:text-white transition-colors"
-                    aria-label="Ver en YouTube"
-                  >
-                    <ExternalLink size={14} />
-                  </a>
-                )}
-              </div>
-            </Card>
+            <Link key={song.id} href={`/repertorio/${song.id}`}>
+              <Card className="flex items-center justify-between gap-4 hover:shadow-[6px_6px_0px_#000] transition-shadow duration-100 cursor-pointer">
+                <div className="flex-1 min-w-0">
+                  <p className="font-black truncate">{song.title}</p>
+                  {song.author && <p className="text-xs text-gray-500 font-medium">{song.author}</p>}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {song.key_note && <Badge>{song.key_note}</Badge>}
+                  {song.bpm && <Badge>{song.bpm} BPM</Badge>}
+                  {song.youtube_url && (
+                    <span className="p-1.5 border-2 border-black">
+                      <ExternalLink size={14} />
+                    </span>
+                  )}
+                </div>
+              </Card>
+            </Link>
           ))}
         </div>
       )}
