@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Lexend } from 'next/font/google'
 import './globals.css'
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration'
+import InstallPrompt from '@/components/InstallPrompt'
 
 const lexend = Lexend({
   subsets: ['latin'],
@@ -78,6 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" className={lexend.className}>
       <body className="min-h-screen bg-white text-black">
         <ServiceWorkerRegistration />
+        <InstallPrompt />
         {children}
       </body>
     </html>
