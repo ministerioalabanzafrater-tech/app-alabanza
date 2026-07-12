@@ -1,12 +1,11 @@
-const CACHE_NAME = 'alabanza-v3'
+const CACHE_NAME = 'alabanza-v4'
+const STATIC_CACHE = 'alabanza-static-v4'
 
-// Rutas a pre-cachear en instalación
 const PRECACHE_URLS = [
   '/offline',
   '/manifest.json',
 ]
 
-// Rutas que NUNCA cachear (API, auth, storage)
 const NEVER_CACHE = [
   '/api/',
   'supabase.co',
@@ -23,7 +22,11 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      Promise.all(
+        keys
+          .filter((k) => k !== CACHE_NAME && k !== STATIC_CACHE)
+          .map((k) => caches.delete(k))
+      )
     )
   )
   self.clients.claim()
@@ -33,36 +36,57 @@ self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = request.url
 
-  // Skip non-GET y rutas excluidas
   if (request.method !== 'GET') return
-  if (NEVER_CACHE.some((pattern) => url.includes(pattern))) return
+  if (NEVER_CACHE.some((p) => url.includes(p))) return
   if (!url.startsWith('http')) return
 
-  event.respondWith(
-    caches.match(request).then((cached) => {
-      if (cached) return cached
-
-      return fetch(request)
-        .then((response) => {
-          // Solo cachear respuestas válidas de mismo origen o estáticos
-          if (
-            response.ok &&
-            (response.type === 'basic' || response.type === 'cors')
-          ) {
-            const clone = response.clone()
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone))
-          }
-          return response
+  // Next.js hashed static bundles → cache-first (inmutables)
+  if (url.includes('/_next/static/')) {
+    event.respondWith(
+      caches.open(STATIC_CACHE).then((cache) =>
+        cache.match(request).then((cached) => {
+          if (cached) return cached
+          return fetch(request).then((res) => {
+            if (res.ok) cache.put(request, res.clone())
+            return res
+          })
         })
-        .catch(() => {
-          // Offline fallback para navegación
-          if (request.mode === 'navigate') {
-            return caches.match('/offline') || new Response('Sin conexión', {
+      )
+    )
+    return
+  }
+
+  // HTML / navegación → network-first, fallback caché
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then((res) => {
+          const clone = res.clone()
+          caches.open(CACHE_NAME).then((c) => c.put(request, clone))
+          return res
+        })
+        .catch(() =>
+          caches.match(request).then(
+            (cached) => cached ?? caches.match('/offline') ?? new Response('Sin conexión', {
               headers: { 'Content-Type': 'text/plain' },
             })
-          }
-        })
-    })
+          )
+        )
+    )
+    return
+  }
+
+  // Resto → network-first, fallback caché
+  event.respondWith(
+    fetch(request)
+      .then((res) => {
+        if (res.ok && (res.type === 'basic' || res.type === 'cors')) {
+          const clone = res.clone()
+          caches.open(CACHE_NAME).then((c) => c.put(request, clone))
+        }
+        return res
+      })
+      .catch(() => caches.match(request))
   )
 })
 
