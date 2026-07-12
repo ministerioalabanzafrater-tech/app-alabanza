@@ -1,16 +1,16 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Music2, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Music2, ExternalLink, Download, Play, Pause, Trash2, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import type { Song } from '@/types/database'
 
-// ── Transposition utilities ──────────────────────────────────────────────────
+// ── Transposition ────────────────────────────────────────────────────────────
 
-const SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
-const FLAT  = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']
+const SHARP   = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
+const FLAT    = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']
 const FLAT_IDX = new Set([1,3,6,8,10])
 
 const TO_IDX: Record<string,number> = {
@@ -25,52 +25,155 @@ function shiftNote(note: string, semitones: number): string {
   return FLAT_IDX.has(j) ? FLAT[j] : SHARP[j]
 }
 
-// Matches chord root + optional quality + optional slash bass
-// Word boundaries prevent matching inside regular words (e.g. "Dios", "Gloria")
 const CHORD_RE = /\b([A-G][b#]?)((?:maj|min|aug|dim|sus[24]?|add\d+|[Mm]?7|m|M|6|9|11|13)*)(\/[A-G][b#]?)?\b/g
 
 function isChordLine(line: string): boolean {
   const trimmed = line.trim()
   if (!trimmed) return false
-  const originalLen = trimmed.replace(/\s/g,'').length
-  if (originalLen === 0) return false
-  // Strip chord tokens and common separators; if < 25% remains, it's a chord line
+  const origLen = trimmed.replace(/\s/g,'').length
+  if (!origLen) return false
   const remaining = trimmed
     .replace(new RegExp(CHORD_RE.source,'g'), '')
     .replace(/[\s\-|/\\()|,.:]+/g,'')
     .length
-  return remaining / originalLen < 0.25
+  return remaining / origLen < 0.25
 }
 
 function shiftLine(line: string, semitones: number): string {
-  return line.replace(new RegExp(CHORD_RE.source,'g'), (_, root: string, quality: string, bass: string) =>
+  return line.replace(new RegExp(CHORD_RE.source,'g'), (_,root:string,quality:string,bass:string) =>
     shiftNote(root, semitones) + (quality ?? '') + (bass ? '/' + shiftNote(bass.slice(1), semitones) : '')
   )
 }
 
+function fmtTime(s: number): string {
+  const m = Math.floor(s / 60)
+  return `${m}:${String(Math.floor(s % 60)).padStart(2,'0')}`
+}
+
 // ── Component ────────────────────────────────────────────────────────────────
+
+type AudioState = 'idle' | 'loading' | 'ready' | 'playing' | 'error'
+
+const CACHE_NAME = 'alabanza-audio-v1'
 
 export default function CancionDetail({ song }: { song: Song }) {
   const [offset, setOffset] = useState(0)
 
+  // Audio
+  const [audioState, setAudioState] = useState<AudioState>('idle')
+  const [duration,   setDuration]   = useState(0)
+  const [elapsed,    setElapsed]    = useState(0)
+  const ctxRef      = useRef<AudioContext | null>(null)
+  const bufferRef   = useRef<AudioBuffer | null>(null)
+  const srcRef      = useRef<AudioBufferSourceNode | null>(null)
+  const pausedAt    = useRef(0)
+  const startedAt   = useRef(0)
+
+  const cacheKey = `/audio/${song.id}`
+
+  // Real-time detune while playing
+  useEffect(() => {
+    if (srcRef.current && audioState === 'playing') {
+      srcRef.current.detune.value = offset * 100
+    }
+  }, [offset, audioState])
+
+  // Elapsed timer
+  useEffect(() => {
+    if (audioState !== 'playing') return
+    const id = setInterval(() => {
+      if (ctxRef.current) setElapsed(ctxRef.current.currentTime - startedAt.current)
+    }, 500)
+    return () => clearInterval(id)
+  }, [audioState])
+
+  async function loadAudio() {
+    // AudioContext must be created synchronously inside the user gesture
+    if (!ctxRef.current) ctxRef.current = new AudioContext()
+    setAudioState('loading')
+
+    try {
+      const cache = await caches.open(CACHE_NAME)
+      let response = await cache.match(cacheKey)
+
+      if (!response) {
+        const res = await fetch(`/api/audio/extract?url=${encodeURIComponent(song.youtube_url!)}`)
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        await cache.put(cacheKey, res.clone())
+        response = res
+      }
+
+      const ab     = await response.arrayBuffer()
+      const buffer = await ctxRef.current!.decodeAudioData(ab)
+      bufferRef.current = buffer
+      setDuration(buffer.duration)
+      setAudioState('ready')
+    } catch (e: any) {
+      console.error('[loadAudio]', e)
+      setAudioState('error')
+    }
+  }
+
+  function play(from: number) {
+    const ctx = ctxRef.current
+    const buf = bufferRef.current
+    if (!ctx || !buf) return
+    if (ctx.state === 'suspended') ctx.resume()
+
+    const src = ctx.createBufferSource()
+    src.buffer       = buf
+    src.detune.value = offset * 100
+    src.connect(ctx.destination)
+    src.start(0, from)
+
+    srcRef.current  = src
+    startedAt.current = ctx.currentTime - from
+    setElapsed(from)
+    setAudioState('playing')
+
+    src.onended = () => {
+      if (srcRef.current === src) {
+        pausedAt.current = 0
+        setElapsed(0)
+        setAudioState('ready')
+      }
+    }
+  }
+
+  function handlePlay()  { play(pausedAt.current) }
+
+  function handlePause() {
+    if (!ctxRef.current || !srcRef.current) return
+    pausedAt.current = ctxRef.current.currentTime - startedAt.current
+    srcRef.current.onended = null
+    srcRef.current.stop()
+    setAudioState('ready')
+  }
+
+  async function deleteAudio() {
+    srcRef.current?.stop()
+    srcRef.current = null
+    bufferRef.current = null
+    pausedAt.current = 0
+    setElapsed(0)
+    const cache = await caches.open(CACHE_NAME)
+    await cache.delete(cacheKey)
+    setAudioState('idle')
+  }
+
   const effectiveKey = song.key_note ? shiftNote(song.key_note, offset) : null
-  const offsetLabel  = offset === 0 ? 'Original' : offset > 0 ? `+${offset}` : `${offset}`
+  const offsetLabel  = offset > 0 ? `+${offset}` : `${offset}`
 
   return (
     <div className="max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-start gap-3 mb-6">
-        <Link
-          href="/repertorio"
-          className="p-2 border-2 border-black hover:bg-black hover:text-white transition-colors shrink-0 mt-1"
-        >
+        <Link href="/repertorio" className="p-2 border-2 border-black hover:bg-black hover:text-white transition-colors shrink-0 mt-1">
           <ArrowLeft size={18} />
         </Link>
         <div className="flex-1 min-w-0">
           <h1 className="font-black text-3xl leading-tight">{song.title}</h1>
-          {song.author && (
-            <p className="text-gray-500 font-medium text-sm mt-0.5">{song.author}</p>
-          )}
+          {song.author && <p className="text-gray-500 font-medium text-sm mt-0.5">{song.author}</p>}
         </div>
       </div>
 
@@ -80,14 +183,9 @@ export default function CancionDetail({ song }: { song: Song }) {
           {song.genre && <Badge>{song.genre}</Badge>}
           {song.bpm   && <Badge>{song.bpm} BPM</Badge>}
           {song.youtube_url && (
-            <a
-              href={song.youtube_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 border-2 border-black px-3 py-1 text-xs font-bold hover:bg-black hover:text-white transition-colors"
-            >
-              <ExternalLink size={12} />
-              YouTube
+            <a href={song.youtube_url} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 border-2 border-black px-3 py-1 text-xs font-bold hover:bg-black hover:text-white transition-colors">
+              <ExternalLink size={12} /> YouTube
             </a>
           )}
         </div>
@@ -98,7 +196,6 @@ export default function CancionDetail({ song }: { song: Song }) {
         <Card className="mb-6">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Tonalidad</p>
           <div className="flex items-center gap-4">
-            {/* Key display */}
             <div className="flex items-center gap-3 flex-1">
               <div>
                 <p className="text-xs text-gray-400 font-medium leading-none mb-1">Original</p>
@@ -114,29 +211,19 @@ export default function CancionDetail({ song }: { song: Song }) {
                 </>
               )}
             </div>
-
-            {/* Controls */}
             <div className="flex items-center gap-2 shrink-0">
-              <button
-                onClick={() => setOffset(o => o - 1)}
-                className="w-10 h-10 border-2 border-black font-black text-xl hover:bg-black hover:text-white transition-colors flex items-center justify-center"
-                aria-label="Bajar semitono"
-              >
+              <button onClick={() => setOffset(o => o - 1)}
+                className="w-10 h-10 border-2 border-black font-black text-xl hover:bg-black hover:text-white transition-colors flex items-center justify-center">
                 −
               </button>
               {offset !== 0 && (
-                <button
-                  onClick={() => setOffset(0)}
-                  className="text-xs font-bold border-2 border-black px-2 py-1 hover:bg-black hover:text-white transition-colors"
-                >
+                <button onClick={() => setOffset(0)}
+                  className="text-xs font-bold border-2 border-black px-2 py-1 hover:bg-black hover:text-white transition-colors">
                   Reset
                 </button>
               )}
-              <button
-                onClick={() => setOffset(o => o + 1)}
-                className="w-10 h-10 border-2 border-black font-black text-xl hover:bg-black hover:text-white transition-colors flex items-center justify-center"
-                aria-label="Subir semitono"
-              >
+              <button onClick={() => setOffset(o => o + 1)}
+                className="w-10 h-10 border-2 border-black font-black text-xl hover:bg-black hover:text-white transition-colors flex items-center justify-center">
                 +
               </button>
             </div>
@@ -144,18 +231,82 @@ export default function CancionDetail({ song }: { song: Song }) {
         </Card>
       )}
 
+      {/* Audio player */}
+      {song.youtube_url && (
+        <Card className="mb-6">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Reproducción</p>
+
+          {audioState === 'idle' && (
+            <button onClick={loadAudio}
+              className="brutal-btn flex items-center gap-2 w-full justify-center">
+              <Download size={16} /> Descargar audio al dispositivo
+            </button>
+          )}
+
+          {audioState === 'loading' && (
+            <div className="flex items-center gap-2 justify-center py-1 text-sm font-bold text-gray-400">
+              <Loader2 size={16} className="animate-spin" /> Descargando…
+            </div>
+          )}
+
+          {audioState === 'error' && (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-bold text-red-600">Error al descargar audio</p>
+              <button onClick={loadAudio} className="brutal-btn-outline text-sm">Reintentar</button>
+            </div>
+          )}
+
+          {(audioState === 'ready' || audioState === 'playing') && (
+            <div className="flex items-center gap-3">
+              {/* Play / Pause */}
+              {audioState === 'playing' ? (
+                <button onClick={handlePause}
+                  className="w-11 h-11 bg-black text-white flex items-center justify-center border-2 border-black hover:bg-gray-800 transition-colors shrink-0">
+                  <Pause size={18} />
+                </button>
+              ) : (
+                <button onClick={handlePlay}
+                  className="w-11 h-11 bg-black text-white flex items-center justify-center border-2 border-black hover:bg-gray-800 transition-colors shrink-0">
+                  <Play size={18} />
+                </button>
+              )}
+
+              {/* Progress */}
+              <div className="flex-1 min-w-0">
+                <div className="h-1.5 bg-gray-200 w-full relative">
+                  <div
+                    className="h-full bg-black transition-all"
+                    style={{ width: duration ? `${(elapsed / duration) * 100}%` : '0%' }}
+                  />
+                </div>
+                <p className="text-xs font-mono text-gray-400 mt-1">
+                  {fmtTime(elapsed)} / {fmtTime(duration)}
+                  {offset !== 0 && <span className="ml-2 font-bold text-black">{effectiveKey}</span>}
+                </p>
+              </div>
+
+              {/* Delete cache */}
+              <button onClick={deleteAudio}
+                className="p-2 text-gray-300 hover:text-red-600 transition-colors shrink-0"
+                title="Borrar audio del dispositivo">
+                <Trash2 size={15} />
+              </button>
+            </div>
+          )}
+        </Card>
+      )}
+
       {/* Lyrics */}
       {song.lyrics && (
         <div className="mb-6">
           <h2 className="font-black text-xs uppercase tracking-widest text-gray-400 mb-3 flex items-center gap-2">
-            <Music2 size={13} />
-            Letra
+            <Music2 size={13} /> Letra
           </h2>
           <Card>
             <pre className="font-mono text-sm leading-relaxed whitespace-pre-wrap break-words">
               {song.lyrics.split('\n').map((line, i) => {
-                const chord = isChordLine(line)
-                const text  = chord && offset !== 0 ? shiftLine(line, offset) : line
+                const chord   = isChordLine(line)
+                const text    = chord && offset !== 0 ? shiftLine(line, offset) : line
                 return (
                   <span key={i} className={chord ? 'font-bold text-blue-600 dark:text-blue-400' : ''}>
                     {text}{'\n'}
