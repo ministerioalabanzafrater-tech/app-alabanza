@@ -25,7 +25,7 @@ export default function NuevoSetlistForm({ events }: { events: Event[] }) {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    const { data, error } = await supabase.from('setlists').insert({
+    const { data, error } = await (supabase.from('setlists') as any).insert({
       title: title.trim(),
       event_id: eventId || null,
       notes: notes.trim() || null,

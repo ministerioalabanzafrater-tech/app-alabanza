@@ -26,7 +26,7 @@ export default function AgregarCancionForm(props: Props) {
     if (!songId) return
     setLoading(true)
     const supabase = createClient()
-    await supabase.from('setlist_songs').insert({
+    await (supabase.from('setlist_songs') as any).insert({
       setlist_id: props.setlistId,
       song_id: songId,
       position: (props.currentCount ?? 0),
@@ -44,7 +44,7 @@ export default function AgregarCancionForm(props: Props) {
     if (!profileId) return
     setLoading(true)
     const supabase = createClient()
-    await supabase.from('setlist_musicians').insert({
+    await (supabase.from('setlist_musicians') as any).insert({
       setlist_id: props.setlistId,
       musician_id: profileId,
     })

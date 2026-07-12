@@ -104,13 +104,13 @@ export interface AudioJob {
 export type Database = {
   public: {
     Tables: {
-      profiles: { Row: Profile; Insert: Partial<Profile>; Update: Partial<Profile> }
-      songs: { Row: Song; Insert: Partial<Song>; Update: Partial<Song> }
-      events: { Row: Event; Insert: Partial<Event>; Update: Partial<Event> }
-      setlists: { Row: Setlist; Insert: Partial<Setlist>; Update: Partial<Setlist> }
-      setlist_songs: { Row: SetlistSong; Insert: Partial<SetlistSong>; Update: Partial<SetlistSong> }
-      setlist_musicians: { Row: SetlistMusician; Insert: Partial<SetlistMusician>; Update: Partial<SetlistMusician> }
-      audio_jobs: { Row: AudioJob; Insert: Partial<AudioJob>; Update: Partial<AudioJob> }
+      profiles: { Row: Profile; Insert: Partial<Profile>; Update: Partial<Profile>; Relationships: [] }
+      songs: { Row: Song; Insert: Partial<Song>; Update: Partial<Song>; Relationships: [] }
+      events: { Row: Event; Insert: Partial<Event>; Update: Partial<Event>; Relationships: [] }
+      setlists: { Row: Setlist; Insert: Partial<Setlist>; Update: Partial<Setlist>; Relationships: [] }
+      setlist_songs: { Row: SetlistSong; Insert: Partial<SetlistSong>; Update: Partial<SetlistSong>; Relationships: [] }
+      setlist_musicians: { Row: SetlistMusician; Insert: Partial<SetlistMusician>; Update: Partial<SetlistMusician>; Relationships: [] }
+      audio_jobs: { Row: AudioJob; Insert: Partial<AudioJob>; Update: Partial<AudioJob>; Relationships: [] }
     }
   }
 }

@@ -39,7 +39,7 @@ export default function NuevaCancionPage() {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    const { error } = await supabase.from('songs').insert({
+    const { error } = await (supabase.from('songs') as any).insert({
       title: form.title.trim(),
       author: form.author.trim() || null,
       bpm: form.bpm ? parseInt(form.bpm) : null,
