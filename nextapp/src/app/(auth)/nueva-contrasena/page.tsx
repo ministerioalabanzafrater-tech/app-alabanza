@@ -1,7 +1,7 @@
 'use client'
 import { Logo } from '@/components/ui/Logo'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/client'
@@ -14,6 +14,27 @@ export default function NuevaContrasenaPage() {
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [ready, setReady] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    // Supabase recovery links put the token in the URL hash
+    const hash = window.location.hash
+    if (hash.includes('access_token')) {
+      const params = new URLSearchParams(hash.slice(1))
+      const access_token = params.get('access_token')
+      const refresh_token = params.get('refresh_token') ?? ''
+      if (access_token) {
+        supabase.auth.setSession({ access_token, refresh_token }).then(() => setReady(true))
+        return
+      }
+    }
+    // Ya hay sesión activa (PKCE flow)
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) setReady(true)
+      else setError('Enlace inválido o expirado. Solicita otro correo de recuperación.')
+    })
+  }, [])
 
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault()
@@ -53,6 +74,7 @@ export default function NuevaContrasenaPage() {
 
         <div className="brutal-card-lg">
           <h2 className="font-black text-xl mb-5">Establecer nueva contraseña</h2>
+          {!ready && !error && <p className="text-sm font-medium text-gray-500 mb-4">Verificando enlace...</p>}
           <form onSubmit={handleUpdate} className="flex flex-col gap-4">
             <Input
               id="password"
@@ -79,7 +101,7 @@ export default function NuevaContrasenaPage() {
                 {error}
               </p>
             )}
-            <Button type="submit" loading={loading} className="w-full mt-1">
+            <Button type="submit" loading={loading} disabled={!ready} className="w-full mt-1">
               Guardar contraseña
             </Button>
           </form>
