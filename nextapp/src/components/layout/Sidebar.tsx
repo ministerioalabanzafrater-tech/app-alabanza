@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, Music2, ListMusic,
+  LayoutDashboard, Music2, ListMusic, CalendarDays,
   BookOpen, GraduationCap, Users, LogOut, X, UserCircle
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
@@ -14,6 +14,7 @@ const NAV = [
   { href: '/dashboard',    label: 'Dashboard',     icon: LayoutDashboard },
   { href: '/repertorio',   label: 'Repertorio',    icon: Music2 },
   { href: '/setlists',     label: 'Setlists',      icon: ListMusic },
+  { href: '/eventos',      label: 'Eventos',       icon: CalendarDays },
   { href: '/fundamentos',  label: 'Fundamentos',   icon: BookOpen },
   { href: '/formacion',    label: 'Formación',     icon: GraduationCap },
   { href: '/equipo',       label: 'Equipo',        icon: Users },

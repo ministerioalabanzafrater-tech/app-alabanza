@@ -4,13 +4,16 @@ import type { Event } from '@/types/database'
 import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 
-export default async function NuevoSetlistPage() {
+export default async function NuevoSetlistPage({
+  searchParams,
+}: {
+  searchParams: { event_id?: string }
+}) {
   const supabase = await createClient()
   const { data } = await supabase
     .from('events')
     .select('id, title, starts_at, type')
-    .gte('starts_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-    .order('starts_at')
+    .order('starts_at', { ascending: false })
 
   const events = (data ?? []) as unknown as Event[]
 
@@ -22,7 +25,7 @@ export default async function NuevoSetlistPage() {
         </Link>
         <h1 className="font-black text-3xl">Nuevo setlist</h1>
       </div>
-      <NuevoSetlistForm events={events} />
+      <NuevoSetlistForm events={events} defaultEventId={searchParams.event_id ?? ''} />
     </div>
   )
 }
