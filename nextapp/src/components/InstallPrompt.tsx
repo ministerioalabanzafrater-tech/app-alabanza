@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Image from 'next/image'
 
 type Platform = 'ios' | 'android' | 'desktop'
 
@@ -130,7 +129,8 @@ export default function InstallPrompt() {
   return (
     <div className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center p-6 overflow-y-auto">
       <div className="w-full max-w-sm flex flex-col items-center py-4">
-        <Image
+        {/* ponytail: plain img avoids /_next/image 415 on Netlify for local static files */}
+        <img
           src="/logo.png"
           alt="Alabanza Frater"
           width={96}
