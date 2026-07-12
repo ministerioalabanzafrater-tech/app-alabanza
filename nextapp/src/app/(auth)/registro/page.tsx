@@ -1,4 +1,5 @@
 'use client'
+import { Logo } from '@/components/ui/Logo'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -69,7 +70,7 @@ export default function RegistroPage() {
     <main className="min-h-screen flex items-center justify-center p-4 bg-white">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <img src="/logo.png" alt="Logo" className="w-16 h-16 object-contain mb-3" />
+          <Logo className="w-16 h-16 mb-3" />
           <h1 className="font-black text-2xl text-center leading-tight">Alabanza Frater</h1>
           <p className="text-sm text-gray-500 font-medium mt-1">Crear cuenta</p>
         </div>
