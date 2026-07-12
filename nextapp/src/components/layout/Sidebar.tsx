@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import { Logo } from '@/components/ui/Logo'
 
 const NAV = [
   { href: '/dashboard',    label: 'Dashboard',     icon: LayoutDashboard },
@@ -40,9 +40,7 @@ export default function Sidebar({ onClose, mobile }: SidebarProps) {
       {/* Header */}
       <div className="flex items-center justify-between p-5 border-b-2 border-black">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 relative">
-            <Image src="/logo.png" alt="Logo" fill className="object-contain" />
-          </div>
+          <Logo className="w-8 h-8" />
           <span className="font-black text-lg leading-tight">Alabanza<br />Frater</span>
         </div>
         {mobile && (
