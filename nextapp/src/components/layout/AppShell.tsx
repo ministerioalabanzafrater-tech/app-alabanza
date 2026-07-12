@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Sidebar from './Sidebar'
 import Navbar from './Navbar'
 import PushSubscribePrompt from '@/components/PushSubscribePrompt'
+import InstallPrompt from '@/components/InstallPrompt'
 import type { Profile } from '@/types/database'
 
 export default function AppShell({
@@ -43,6 +44,7 @@ export default function AppShell({
         </main>
       </div>
       <PushSubscribePrompt />
+      <InstallPrompt />
     </div>
   )
 }
