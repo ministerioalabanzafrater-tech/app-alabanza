@@ -41,7 +41,7 @@ export default function Sidebar({ onClose, mobile }: SidebarProps) {
       <div className="flex items-center justify-between p-5 border-b-2 border-black">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 relative">
-            <Image src="/icons/icon-192.png" alt="Logo" fill className="object-contain" />
+            <Image src="/logo.png" alt="Logo" fill className="object-contain" />
           </div>
           <span className="font-black text-lg leading-tight">Alabanza<br />Frater</span>
         </div>
