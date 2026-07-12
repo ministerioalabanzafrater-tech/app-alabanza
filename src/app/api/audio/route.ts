@@ -84,9 +84,13 @@ export async function POST(req: NextRequest) {
 
     if (uploadError) throw new Error(uploadError.message)
 
-    const { data: { publicUrl } } = supabase.storage
+    // URL firmada válida por 1 hora
+    const { data: signedData, error: signError } = await supabase.storage
       .from('audio')
-      .getPublicUrl(storagePath)
+      .createSignedUrl(storagePath, 3600)
+
+    if (signError || !signedData) throw new Error('No se pudo generar URL firmada')
+    const signedUrl = signedData.signedUrl
 
     // 4. Registrar job en DB
     await supabase.from('audio_jobs').insert({
@@ -94,13 +98,13 @@ export async function POST(req: NextRequest) {
       youtube_url: youtubeUrl,
       semitones,
       status: 'done',
-      output_url: publicUrl,
+      output_url: storagePath, // ponytail: guardamos el path, no la URL (expira)
     } as never)
 
     // Limpiar temporales
     await Promise.allSettled([unlink(mp3Path), unlink(outPath)])
 
-    return NextResponse.json({ url: publicUrl })
+    return NextResponse.json({ url: signedUrl })
   } catch (err) {
     await Promise.allSettled([
       unlink(mp3Path).catch(() => {}),
