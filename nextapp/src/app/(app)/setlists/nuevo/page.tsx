@@ -7,8 +7,9 @@ import { ArrowLeft } from 'lucide-react'
 export default async function NuevoSetlistPage({
   searchParams,
 }: {
-  searchParams: { event_id?: string }
+  searchParams: Promise<{ event_id?: string }>
 }) {
+  const { event_id } = await searchParams
   const supabase = await createClient()
   const { data } = await supabase
     .from('events')
@@ -25,7 +26,7 @@ export default async function NuevoSetlistPage({
         </Link>
         <h1 className="font-black text-3xl">Nuevo setlist</h1>
       </div>
-      <NuevoSetlistForm events={events} defaultEventId={searchParams.event_id ?? ''} />
+      <NuevoSetlistForm events={events} defaultEventId={event_id ?? ''} />
     </div>
   )
 }

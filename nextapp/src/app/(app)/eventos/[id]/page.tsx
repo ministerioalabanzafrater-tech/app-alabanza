@@ -13,13 +13,14 @@ const TYPE_LABEL: Record<string, string> = {
   otro:     'Otro',
 }
 
-export default async function EventoPage({ params }: { params: { id: string } }) {
+export default async function EventoPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
 
   const { data: ev } = await supabase
     .from('events')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .single()
 
   if (!ev) notFound()
@@ -29,7 +30,7 @@ export default async function EventoPage({ params }: { params: { id: string } })
   const { data: setlistsData } = await supabase
     .from('setlists')
     .select('id, title, notes, created_at')
-    .eq('event_id', params.id)
+    .eq('event_id', id)
     .order('created_at', { ascending: false })
 
   const setlists = (setlistsData ?? []) as unknown as Setlist[]
