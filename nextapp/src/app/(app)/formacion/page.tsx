@@ -1,6 +1,7 @@
 import { Card, CardTitle, CardDescription } from '@/components/ui/Card'
 import { Download, Music, GraduationCap } from 'lucide-react'
 import Link from 'next/link'
+import EscalaArmonica from './EscalaArmonica'
 
 const NOTAS = ['Do', 'Re', 'Mi', 'Fa', 'Sol', 'La', 'Si']
 const CIFRADO = [
@@ -59,6 +60,9 @@ export default function FormacionPage() {
           ))}
         </div>
       </section>
+
+      {/* Escala armónica */}
+      <EscalaArmonica />
 
       {/* Cifrado americano */}
       <section className="mb-8">
