@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Music2, ExternalLink, Play, Pause, Trash2, Loader2, FolderOpen } from 'lucide-react'
+import { SoundTouchNode } from '@soundtouchjs/audio-worklet'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import type { Song } from '@/types/database'
@@ -64,19 +65,28 @@ export default function CancionDetail({ song }: { song: Song }) {
   const [audioError, setAudioError] = useState('')
   const [duration,   setDuration]   = useState(0)
   const [elapsed,    setElapsed]    = useState(0)
-  const ctxRef    = useRef<AudioContext | null>(null)
-  const bufferRef = useRef<AudioBuffer | null>(null)
-  const srcRef    = useRef<AudioBufferSourceNode | null>(null)
-  const pausedAt  = useRef(0)
-  const startedAt = useRef(0)
-  const fileRef   = useRef<HTMLInputElement | null>(null)
+  const ctxRef        = useRef<AudioContext | null>(null)
+  const bufferRef     = useRef<AudioBuffer | null>(null)
+  const srcRef        = useRef<AudioBufferSourceNode | null>(null)
+  const stNodeRef     = useRef<SoundTouchNode | null>(null)
+  const workletRef    = useRef<Promise<void> | null>(null)
+  const pausedAt      = useRef(0)
+  const startedAt     = useRef(0)
+  const fileRef       = useRef<HTMLInputElement | null>(null)
 
   const cacheKey = `/audio/${song.id}`
 
-  // Real-time detune while playing
+  function ensureWorklet(ctx: AudioContext): Promise<void> {
+    if (!workletRef.current) {
+      workletRef.current = SoundTouchNode.register(ctx, '/soundtouch-processor.js')
+    }
+    return workletRef.current
+  }
+
+  // Real-time pitch update (no speed change)
   useEffect(() => {
-    if (srcRef.current && audioState === 'playing') {
-      srcRef.current.detune.value = offset * 100
+    if (stNodeRef.current && audioState === 'playing') {
+      stNodeRef.current.pitchSemitones.value = offset
     }
   }, [offset, audioState])
 
@@ -102,7 +112,6 @@ export default function CancionDetail({ song }: { song: Song }) {
     setAudioState('loading')
 
     try {
-      // 1. Check local cache first
       const cache = await caches.open(CACHE_NAME)
       const cached = await cache.match(cacheKey)
       if (cached) {
@@ -110,7 +119,6 @@ export default function CancionDetail({ song }: { song: Song }) {
         return await decodeAndReady(ab)
       }
 
-      // 2. Get signed CDN URL from server
       const meta = await fetch(`/api/audio/extract?url=${encodeURIComponent(song.youtube_url!)}`)
       if (!meta.ok) {
         const { error } = await meta.json().catch(() => ({ error: `HTTP ${meta.status}` }))
@@ -118,19 +126,16 @@ export default function CancionDetail({ song }: { song: Song }) {
       }
       const { audioUrl, mimeType } = await meta.json()
 
-      // 3. Client fetches directly from YouTube CDN (avoids server IP block)
       const res = await fetch(audioUrl)
       if (!res.ok) throw new Error(`CDN HTTP ${res.status}`)
 
       const ab = await res.arrayBuffer()
-
-      // 4. Store in device cache
       await cache.put(cacheKey, new Response(ab.slice(0), { headers: { 'Content-Type': mimeType } }))
-
       await decodeAndReady(ab)
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Error desconocido'
       console.error('[loadFromYouTube]', e)
-      setAudioError(e?.message ?? 'Error desconocido')
+      setAudioError(msg)
       setAudioState('error')
     }
   }
@@ -142,27 +147,39 @@ export default function CancionDetail({ song }: { song: Song }) {
 
     try {
       const ab = await file.arrayBuffer()
-      // Store in device cache for next time
       const cache = await caches.open(CACHE_NAME)
       await cache.put(cacheKey, new Response(ab.slice(0), { headers: { 'Content-Type': file.type || 'audio/mpeg' } }))
       await decodeAndReady(ab)
-    } catch (e: any) {
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Error al leer archivo'
       console.error('[loadFromFile]', e)
-      setAudioError(e?.message ?? 'Error al leer archivo')
+      setAudioError(msg)
       setAudioState('error')
     }
   }
 
-  function play(from: number) {
+  async function play(from: number) {
     const ctx = ctxRef.current
     const buf = bufferRef.current
     if (!ctx || !buf) return
-    if (ctx.state === 'suspended') ctx.resume()
+    if (ctx.state === 'suspended') await ctx.resume()
+
+    // Ensure worklet is registered
+    await ensureWorklet(ctx)
+
+    // Cleanup previous nodes
+    if (srcRef.current) { srcRef.current.onended = null; srcRef.current.disconnect() }
+    stNodeRef.current?.disconnect()
+
+    // Build: src → stNode → destination
+    const stNode = new SoundTouchNode({ context: ctx })
+    stNode.pitchSemitones.value = offset
+    stNode.connect(ctx.destination)
+    stNodeRef.current = stNode
 
     const src = ctx.createBufferSource()
-    src.buffer       = buf
-    src.detune.value = offset * 100
-    src.connect(ctx.destination)
+    src.buffer = buf
+    src.connect(stNode)
     src.start(0, from)
 
     srcRef.current    = src
@@ -172,6 +189,7 @@ export default function CancionDetail({ song }: { song: Song }) {
 
     src.onended = () => {
       if (srcRef.current === src) {
+        stNode.disconnect()
         pausedAt.current = 0
         setElapsed(0)
         setAudioState('ready')
@@ -186,12 +204,15 @@ export default function CancionDetail({ song }: { song: Song }) {
     pausedAt.current = ctxRef.current.currentTime - startedAt.current
     srcRef.current.onended = null
     srcRef.current.stop()
+    stNodeRef.current?.disconnect()
     setAudioState('ready')
   }
 
   async function deleteAudio() {
     srcRef.current?.stop()
     srcRef.current = null
+    stNodeRef.current?.disconnect()
+    stNodeRef.current = null
     bufferRef.current = null
     pausedAt.current = 0
     setElapsed(0)
@@ -271,11 +292,9 @@ export default function CancionDetail({ song }: { song: Song }) {
       )}
 
       {/* Audio player */}
-      {/* Audio player — shown when there's a YouTube URL or always (file picker) */}
       <Card className="mb-6">
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Reproducción</p>
 
-        {/* Hidden file input */}
         <input
           ref={fileRef}
           type="file"
@@ -358,8 +377,8 @@ export default function CancionDetail({ song }: { song: Song }) {
           <Card>
             <pre className="font-mono text-sm leading-relaxed whitespace-pre-wrap break-words">
               {song.lyrics.split('\n').map((line, i) => {
-                const chord   = isChordLine(line)
-                const text    = chord && offset !== 0 ? shiftLine(line, offset) : line
+                const chord = isChordLine(line)
+                const text  = chord && offset !== 0 ? shiftLine(line, offset) : line
                 return (
                   <span key={i} className={chord ? 'font-bold text-blue-600 dark:text-blue-400' : ''}>
                     {text}{'\n'}
