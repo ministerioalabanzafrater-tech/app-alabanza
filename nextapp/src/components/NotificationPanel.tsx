@@ -47,7 +47,13 @@ export default function NotificationPanel() {
       .filter((x): x is { profile: Profile; days: number } => x.days !== null)
       .sort((a, b) => a.days - b.days)
 
-    setEvents((evs ?? []) as unknown as Event[])
+    // Deduplicate by id in case of duplicate DB rows
+    const seen = new Set<string>()
+    const unique = ((evs ?? []) as unknown as Event[]).filter(e => {
+      if (seen.has(e.id)) return false
+      seen.add(e.id); return true
+    })
+    setEvents(unique)
     setBirthdays(upcoming)
     setLoaded(true)
   }, [loaded])
@@ -89,7 +95,7 @@ export default function NotificationPanel() {
               {events.map(e => (
                 <li key={e.id}>
                   <Link
-                    href="/agenda"
+                    href={`/eventos/${e.id}`}
                     onClick={() => setOpen(false)}
                     className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
                   >
