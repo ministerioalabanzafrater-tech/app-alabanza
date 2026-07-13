@@ -1,7 +1,7 @@
 // nextapp/src/app/(app)/formacion/ritmica/useMetronome.ts
 'use client'
 
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import type { Exercise } from './exercises'
 
 const LOOKAHEAD_S  = 0.1   // segundos hacia adelante para programar
@@ -126,7 +126,7 @@ export function useMetronome() {
     schedulerRef.current = setTimeout(runScheduler, INTERVAL_MS)
   }
 
-  const play = useCallback((
+  const play = useCallback(async (
     exercise: Exercise,
     bpm: number,
     metroOn: boolean,
@@ -138,7 +138,7 @@ export function useMetronome() {
     visualTimersRef.current = []
 
     const ctx = getCtx()
-    if (ctx.state === 'suspended') ctx.resume()
+    if (ctx.state === 'suspended') await ctx.resume()
 
     exerciseRef.current    = exercise
     bpmRef.current         = bpm
@@ -160,6 +160,13 @@ export function useMetronome() {
     setIsPlaying(false)
     setCursor(null)
   }, [])
+
+  useEffect(() => {
+    return () => {
+      stop()
+      ctxRef.current?.close()
+    }
+  }, [stop])
 
   return { isPlaying, cursor, play, stop }
 }

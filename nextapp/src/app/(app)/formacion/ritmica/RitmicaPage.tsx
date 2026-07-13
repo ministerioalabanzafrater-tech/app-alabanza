@@ -114,9 +114,9 @@ export default function RitmicaPage() {
   const allExercises: Exercise[] = [...EXERCISES, { ...CUSTOM_TEMPLATE, measures: custom }]
   const currentExercise = allExercises.find(e => e.id === exerciseId) ?? allExercises[0]
 
-  function handlePlay() {
+  async function handlePlay() {
     if (currentExercise.measures.length === 0) return
-    play(currentExercise, bpm, metroOn, figureOn)
+    await play(currentExercise, bpm, metroOn, figureOn)
   }
 
   function handleStop() { stop() }
