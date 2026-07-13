@@ -1,17 +1,16 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Music2, ExternalLink, Play, Pause, Trash2, Loader2, FolderOpen } from 'lucide-react'
-import { SoundTouchNode } from '@soundtouchjs/audio-worklet'
+import { ArrowLeft, Music2, ExternalLink } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import type { Song } from '@/types/database'
 
 // ── Transposition ────────────────────────────────────────────────────────────
 
-const SHARP   = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
-const FLAT    = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']
+const SHARP    = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
+const FLAT     = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B']
 const FLAT_IDX = new Set([1,3,6,8,10])
 
 const TO_IDX: Record<string,number> = {
@@ -46,183 +45,27 @@ function shiftLine(line: string, semitones: number): string {
   )
 }
 
-function fmtTime(s: number): string {
-  const m = Math.floor(s / 60)
-  return `${m}:${String(Math.floor(s % 60)).padStart(2,'0')}`
+function extractVideoId(url: string): string | null {
+  const patterns = [
+    /[?&]v=([a-zA-Z0-9_-]{11})/,
+    /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+    /embed\/([a-zA-Z0-9_-]{11})/,
+  ]
+  for (const re of patterns) {
+    const m = url.match(re)
+    if (m) return m[1]
+  }
+  return null
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
 
-type AudioState = 'idle' | 'loading' | 'ready' | 'playing' | 'error'
-
-const CACHE_NAME = 'alabanza-audio-v1'
-
 export default function CancionDetail({ song }: { song: Song }) {
   const [offset, setOffset] = useState(0)
 
-  // Audio
-  const [audioState, setAudioState] = useState<AudioState>('idle')
-  const [audioError, setAudioError] = useState('')
-  const [duration,   setDuration]   = useState(0)
-  const [elapsed,    setElapsed]    = useState(0)
-  const ctxRef        = useRef<AudioContext | null>(null)
-  const bufferRef     = useRef<AudioBuffer | null>(null)
-  const srcRef        = useRef<AudioBufferSourceNode | null>(null)
-  const stNodeRef     = useRef<SoundTouchNode | null>(null)
-  const workletRef    = useRef<Promise<void> | null>(null)
-  const pausedAt      = useRef(0)
-  const startedAt     = useRef(0)
-  const fileRef       = useRef<HTMLInputElement | null>(null)
-
-  const cacheKey = `/audio/${song.id}`
-
-  function ensureWorklet(ctx: AudioContext): Promise<void> {
-    if (!workletRef.current) {
-      workletRef.current = SoundTouchNode.register(ctx, '/soundtouch-processor.js')
-    }
-    return workletRef.current
-  }
-
-  // Real-time pitch update (no speed change)
-  useEffect(() => {
-    if (stNodeRef.current && audioState === 'playing') {
-      stNodeRef.current.pitchSemitones.value = offset
-    }
-  }, [offset, audioState])
-
-  // Elapsed timer
-  useEffect(() => {
-    if (audioState !== 'playing') return
-    const id = setInterval(() => {
-      if (ctxRef.current) setElapsed(ctxRef.current.currentTime - startedAt.current)
-    }, 500)
-    return () => clearInterval(id)
-  }, [audioState])
-
-  const decodeAndReady = useCallback(async (ab: ArrayBuffer) => {
-    const buffer = await ctxRef.current!.decodeAudioData(ab)
-    bufferRef.current = buffer
-    setDuration(buffer.duration)
-    setAudioState('ready')
-  }, [])
-
-  async function loadFromYouTube() {
-    if (!ctxRef.current) ctxRef.current = new AudioContext()
-    setAudioError('')
-    setAudioState('loading')
-
-    try {
-      const cache = await caches.open(CACHE_NAME)
-      const cached = await cache.match(cacheKey)
-      if (cached) {
-        const ab = await cached.arrayBuffer()
-        return await decodeAndReady(ab)
-      }
-
-      const meta = await fetch(`/api/audio/extract?url=${encodeURIComponent(song.youtube_url!)}`)
-      if (!meta.ok) {
-        const { error } = await meta.json().catch(() => ({ error: `HTTP ${meta.status}` }))
-        throw new Error(error)
-      }
-      const { audioUrl, mimeType } = await meta.json()
-
-      const res = await fetch(audioUrl)
-      if (!res.ok) throw new Error(`CDN HTTP ${res.status}`)
-
-      const ab = await res.arrayBuffer()
-      await cache.put(cacheKey, new Response(ab.slice(0), { headers: { 'Content-Type': mimeType } }))
-      await decodeAndReady(ab)
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Error desconocido'
-      console.error('[loadFromYouTube]', e)
-      setAudioError(msg)
-      setAudioState('error')
-    }
-  }
-
-  async function loadFromFile(file: File) {
-    if (!ctxRef.current) ctxRef.current = new AudioContext()
-    setAudioError('')
-    setAudioState('loading')
-
-    try {
-      const ab = await file.arrayBuffer()
-      const cache = await caches.open(CACHE_NAME)
-      await cache.put(cacheKey, new Response(ab.slice(0), { headers: { 'Content-Type': file.type || 'audio/mpeg' } }))
-      await decodeAndReady(ab)
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Error al leer archivo'
-      console.error('[loadFromFile]', e)
-      setAudioError(msg)
-      setAudioState('error')
-    }
-  }
-
-  async function play(from: number) {
-    const ctx = ctxRef.current
-    const buf = bufferRef.current
-    if (!ctx || !buf) return
-    if (ctx.state === 'suspended') await ctx.resume()
-
-    // Ensure worklet is registered
-    await ensureWorklet(ctx)
-
-    // Cleanup previous nodes
-    if (srcRef.current) { srcRef.current.onended = null; srcRef.current.disconnect() }
-    stNodeRef.current?.disconnect()
-
-    // Build: src → stNode → destination
-    const stNode = new SoundTouchNode({ context: ctx })
-    stNode.pitchSemitones.value = offset
-    stNode.connect(ctx.destination)
-    stNodeRef.current = stNode
-
-    const src = ctx.createBufferSource()
-    src.buffer = buf
-    src.connect(stNode)
-    src.start(0, from)
-
-    srcRef.current    = src
-    startedAt.current = ctx.currentTime - from
-    setElapsed(from)
-    setAudioState('playing')
-
-    src.onended = () => {
-      if (srcRef.current === src) {
-        stNode.disconnect()
-        pausedAt.current = 0
-        setElapsed(0)
-        setAudioState('ready')
-      }
-    }
-  }
-
-  function handlePlay()  { play(pausedAt.current) }
-
-  function handlePause() {
-    if (!ctxRef.current || !srcRef.current) return
-    pausedAt.current = ctxRef.current.currentTime - startedAt.current
-    srcRef.current.onended = null
-    srcRef.current.stop()
-    stNodeRef.current?.disconnect()
-    setAudioState('ready')
-  }
-
-  async function deleteAudio() {
-    srcRef.current?.stop()
-    srcRef.current = null
-    stNodeRef.current?.disconnect()
-    stNodeRef.current = null
-    bufferRef.current = null
-    pausedAt.current = 0
-    setElapsed(0)
-    const cache = await caches.open(CACHE_NAME)
-    await cache.delete(cacheKey)
-    setAudioState('idle')
-  }
-
   const effectiveKey = song.key_note ? shiftNote(song.key_note, offset) : null
   const offsetLabel  = offset > 0 ? `+${offset}` : `${offset}`
+  const videoId      = song.youtube_url ? extractVideoId(song.youtube_url) : null
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -251,7 +94,22 @@ export default function CancionDetail({ song }: { song: Song }) {
         </div>
       )}
 
-      {/* Key transposition widget */}
+      {/* YouTube player */}
+      {videoId && (
+        <div className="mb-6 border-4 border-black shadow-[4px_4px_0px_#000]">
+          <div className="aspect-video w-full">
+            <iframe
+              src={`https://www.youtube.com/embed/${videoId}`}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title={song.title}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Key transposition */}
       {song.key_note && (
         <Card className="mb-6">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Tonalidad</p>
@@ -290,83 +148,6 @@ export default function CancionDetail({ song }: { song: Song }) {
           </div>
         </Card>
       )}
-
-      {/* Audio player */}
-      <Card className="mb-6">
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Reproducción</p>
-
-        <input
-          ref={fileRef}
-          type="file"
-          accept="audio/*"
-          className="hidden"
-          onChange={e => { const f = e.target.files?.[0]; if (f) loadFromFile(f); e.target.value = '' }}
-        />
-
-        {audioState === 'idle' && (
-          <div className="flex flex-col gap-2">
-            <button onClick={() => fileRef.current?.click()}
-              className="brutal-btn flex items-center gap-2 w-full justify-center">
-              <FolderOpen size={15} /> Cargar archivo de audio
-            </button>
-            <p className="text-xs text-gray-400 text-center">
-              MP3, M4A, OGG u otro formato de audio
-            </p>
-          </div>
-        )}
-
-        {audioState === 'loading' && (
-          <div className="flex items-center gap-2 justify-center py-1 text-sm font-bold text-gray-400">
-            <Loader2 size={16} className="animate-spin" /> Cargando audio…
-          </div>
-        )}
-
-        {audioState === 'error' && (
-          <div className="flex flex-col gap-3">
-            <p className="text-xs font-bold text-red-600 border border-red-200 bg-red-50 dark:bg-red-900/20 px-3 py-2">
-              {audioError || 'Error al leer el archivo'}
-            </p>
-            <button onClick={() => fileRef.current?.click()} className="brutal-btn flex items-center gap-2 justify-center">
-              <FolderOpen size={14} /> Cargar otro archivo
-            </button>
-          </div>
-        )}
-
-        {(audioState === 'ready' || audioState === 'playing') && (
-          <div className="flex items-center gap-3">
-            {audioState === 'playing' ? (
-              <button onClick={handlePause}
-                className="w-11 h-11 bg-black text-white flex items-center justify-center border-2 border-black hover:bg-gray-800 transition-colors shrink-0">
-                <Pause size={18} />
-              </button>
-            ) : (
-              <button onClick={handlePlay}
-                className="w-11 h-11 bg-black text-white flex items-center justify-center border-2 border-black hover:bg-gray-800 transition-colors shrink-0">
-                <Play size={18} />
-              </button>
-            )}
-
-            <div className="flex-1 min-w-0">
-              <div className="h-1.5 bg-gray-200 w-full">
-                <div
-                  className="h-full bg-black transition-all"
-                  style={{ width: duration ? `${Math.min((elapsed / duration) * 100, 100)}%` : '0%' }}
-                />
-              </div>
-              <p className="text-xs font-mono text-gray-400 mt-1">
-                {fmtTime(elapsed)} / {fmtTime(duration)}
-                {offset !== 0 && <span className="ml-2 font-bold text-black">{effectiveKey}</span>}
-              </p>
-            </div>
-
-            <button onClick={deleteAudio}
-              className="p-2 text-gray-300 hover:text-red-600 transition-colors shrink-0"
-              title="Borrar audio del dispositivo">
-              <Trash2 size={15} />
-            </button>
-          </div>
-        )}
-      </Card>
 
       {/* Lyrics */}
       {song.lyrics && (
