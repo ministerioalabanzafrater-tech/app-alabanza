@@ -227,9 +227,8 @@ create policy "songs_insert" on songs
   for insert with check (auth.uid() is not null);
 
 create policy "songs_update" on songs
-  for update using (
-    auth.uid() = created_by or current_user_role() = 'admin'
-  );
+  for update using (auth.uid() is not null)
+  with check (auth.uid() is not null);
 
 create policy "songs_delete" on songs
   for delete using (current_user_role() = 'admin');
