@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Sidebar from './Sidebar'
 import Navbar from './Navbar'
 import PushSubscribePrompt from '@/components/PushSubscribePrompt'
+import OnboardingModal, { useOnboarding } from '@/components/OnboardingModal'
 import type { Profile } from '@/types/database'
 
 export default function AppShell({
@@ -14,6 +15,7 @@ export default function AppShell({
   profile: Profile | null
 }) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { open, setOpen, dismiss } = useOnboarding()
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -37,12 +39,14 @@ export default function AppShell({
 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Navbar profile={profile} onMenuClick={() => setMobileOpen(true)} />
+        <Navbar profile={profile} onMenuClick={() => setMobileOpen(true)} onHelpClick={() => setOpen(true)} />
         <main className="flex-1 overflow-y-auto p-4 lg:p-6 bg-white">
           {children}
         </main>
       </div>
+
       <PushSubscribePrompt />
+      <OnboardingModal open={open} onClose={dismiss} />
     </div>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { Menu } from 'lucide-react'
+import { Menu, HelpCircle } from 'lucide-react'
 import InstrumentIcon from '@/components/InstrumentIcon'
 import NotificationPanel from '@/components/NotificationPanel'
 import type { Profile } from '@/types/database'
@@ -8,9 +8,10 @@ import type { Profile } from '@/types/database'
 interface NavbarProps {
   profile: Profile | null
   onMenuClick: () => void
+  onHelpClick: () => void
 }
 
-export default function Navbar({ profile, onMenuClick }: NavbarProps) {
+export default function Navbar({ profile, onMenuClick, onHelpClick }: NavbarProps) {
   const initials = profile?.full_name
     ? profile.full_name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
     : '?'
@@ -31,6 +32,13 @@ export default function Navbar({ profile, onMenuClick }: NavbarProps) {
 
       {/* Right side */}
       <div className="flex items-center gap-3 ml-auto">
+        <button
+          onClick={onHelpClick}
+          className="p-2 border-2 border-black rounded-xl hover:bg-black hover:text-white transition-colors"
+          aria-label="Ver tutorial"
+        >
+          <HelpCircle size={18} />
+        </button>
         <NotificationPanel />
 
         <div className="flex items-center gap-2 border-2 border-black rounded-xl px-3 py-1.5">
