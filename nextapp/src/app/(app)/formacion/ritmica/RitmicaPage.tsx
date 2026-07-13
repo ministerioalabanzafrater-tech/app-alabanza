@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Play, Square, Volume2, VolumeX, Music, Minus, Plus } from 'lucide-react'
 import { useMetronome } from './useMetronome'
@@ -113,6 +113,17 @@ export default function RitmicaPage() {
   const [figureVol,  setFigureVol]  = useState(0.8)
   const [custom,     setCustom]     = useState<Measure[]>([])
 
+  const measureRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  useEffect(() => {
+    if (isPlaying && cursor) {
+      measureRefs.current[cursor.measureIdx]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    }
+  }, [cursor?.measureIdx, isPlaying])
+
   const allExercises: Exercise[] = [...EXERCISES, { ...CUSTOM_TEMPLATE, measures: custom }]
   const currentExercise = allExercises.find(e => e.id === exerciseId) ?? allExercises[0]
 
@@ -200,12 +211,9 @@ export default function RitmicaPage() {
       {exerciseId !== 'personalizado' && (
         <div className="flex flex-col gap-2 mb-6">
           {currentExercise.measures.map((measure, mi) => (
-            <MeasureRow
-              key={mi}
-              measure={measure}
-              measureIdx={mi}
-              cursor={cursor}
-            />
+            <div key={mi} ref={el => { measureRefs.current[mi] = el }}>
+              <MeasureRow measure={measure} measureIdx={mi} cursor={cursor} />
+            </div>
           ))}
         </div>
       )}
@@ -276,7 +284,7 @@ export default function RitmicaPage() {
           {/* Grilla de compases personalizados */}
           <div className="flex flex-col gap-2">
             {custom.map((measure, mi) => (
-              <div key={mi} className="flex items-center gap-2">
+              <div key={mi} ref={el => { measureRefs.current[mi] = el }} className="flex items-center gap-2">
                 <div className="flex-1">
                   <MeasureRow measure={measure} measureIdx={mi} cursor={cursor} />
                 </div>
