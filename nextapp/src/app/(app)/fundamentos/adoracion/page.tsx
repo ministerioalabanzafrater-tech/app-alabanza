@@ -156,7 +156,7 @@ function ChapterRow({
   if (!accessible) return <div key={chapter.index}>{content}</div>
 
   return (
-    <Link href={`/formacion/adoracion/${chapter.index}`}>
+    <Link href={`/fundamentos/adoracion/${chapter.index}`}>
       {content}
     </Link>
   )

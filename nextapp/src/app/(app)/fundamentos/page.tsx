@@ -1,5 +1,6 @@
 import { Card, CardTitle, CardDescription } from '@/components/ui/Card'
-import { Download, BookOpen, Heart, Music } from 'lucide-react'
+import { BookOpen, Heart, Music, BookMarked } from 'lucide-react'
+import Link from 'next/link'
 
 const PILLARS = [
   {
@@ -49,26 +50,17 @@ export default function FundamentosPage() {
         ))}
       </div>
 
-      {/* Descarga */}
-      <Card size="lg">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <CardTitle>Manual: La Adoración</CardTitle>
-            <CardDescription>eBook — Coalición por el Evangelio</CardDescription>
-            <p className="text-xs text-gray-400 font-medium mt-1">
-              PDF completo con fundamentos teológicos de la adoración cristiana.
-            </p>
-          </div>
-          <a
-            href="/pdfs/adoracion.pdf"
-            download="La-Adoracion-CoalicionEvangelio.pdf"
-            className="brutal-btn flex items-center gap-2 shrink-0"
-          >
-            <Download size={18} />
-            Descargar PDF
-          </a>
+      {/* Plan de Lectura */}
+      <Link href="/fundamentos/adoracion" className="brutal-card-lg flex items-center gap-4 hover:shadow-[8px_8px_0px_#000] transition-shadow cursor-pointer">
+        <div className="w-12 h-12 bg-black flex items-center justify-center shrink-0">
+          <BookMarked size={24} className="text-white" />
         </div>
-      </Card>
+        <div>
+          <p className="font-black text-lg">Plan de Lectura</p>
+          <p className="text-sm text-gray-500 font-medium">La Adoración · Coalición por el Evangelio · 12 capítulos</p>
+        </div>
+        <span className="ml-auto font-black text-xl">→</span>
+      </Link>
     </div>
   )
 }

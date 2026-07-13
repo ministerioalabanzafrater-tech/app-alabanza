@@ -21,7 +21,7 @@ export default async function ChapterPage({ params }: { params: Promise<{ capitu
   const readSet = new Set<number>((progressData ?? []).map((p: any) => p.chapter_index))
 
   // Enforce sequential access
-  if (idx > 0 && !readSet.has(idx - 1)) redirect('/formacion/adoracion')
+  if (idx > 0 && !readSet.has(idx - 1)) redirect('/fundamentos/adoracion')
 
   const isRead = readSet.has(idx)
   const hasNext = idx < CHAPTERS.length - 1

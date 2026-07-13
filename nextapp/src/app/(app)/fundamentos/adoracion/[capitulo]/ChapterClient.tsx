@@ -40,7 +40,7 @@ export default function ChapterClient({
     <div className="max-w-2xl mx-auto">
       {/* Header */}
       <div className="flex items-start gap-3 mb-6">
-        <Link href="/formacion/adoracion"
+        <Link href="/fundamentos/adoracion"
           className="p-2 border-2 border-black hover:bg-black hover:text-white transition-colors shrink-0 mt-1">
           <ArrowLeft size={18} />
         </Link>
@@ -93,7 +93,7 @@ export default function ChapterClient({
       <div className="flex gap-3">
         {chapter.index > 0 && (
           <Link
-            href={`/formacion/adoracion/${chapter.index - 1}`}
+            href={`/fundamentos/adoracion/${chapter.index - 1}`}
             className="brutal-btn-outline flex-1 text-center text-sm"
           >
             ← Anterior
@@ -101,14 +101,14 @@ export default function ChapterClient({
         )}
         {hasNext && read && (
           <Link
-            href={`/formacion/adoracion/${chapter.index + 1}`}
+            href={`/fundamentos/adoracion/${chapter.index + 1}`}
             className="brutal-btn flex items-center gap-1 justify-center flex-1 text-sm"
           >
             Siguiente <ChevronRight size={15} />
           </Link>
         )}
         {!hasNext && read && (
-          <Link href="/formacion/adoracion" className="brutal-btn flex-1 text-center text-sm">
+          <Link href="/fundamentos/adoracion" className="brutal-btn flex-1 text-center text-sm">
             Ver plan completo
           </Link>
         )}
