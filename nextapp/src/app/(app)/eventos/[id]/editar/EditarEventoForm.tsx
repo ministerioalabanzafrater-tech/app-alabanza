@@ -38,9 +38,13 @@ export default function EditarEventoForm({ event }: { event: Event }) {
   async function handleDelete() {
     if (!confirm('¿Eliminar este evento? Esta acción no se puede deshacer.')) return
     setLoading(true)
-    const supabase = createClient()
-    await (supabase.from('events') as any).delete().eq('id', event.id)
+    const res = await fetch(`/api/eventos/${event.id}`, { method: 'DELETE' })
     setLoading(false)
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      setError(body.error ?? 'Error al eliminar')
+      return
+    }
     router.push('/eventos')
     router.refresh()
   }
