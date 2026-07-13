@@ -56,7 +56,7 @@ export default function EscalaArmonica() {
               onClick={() => setRoot(note)}
               className={`brutal-card py-3 text-center font-black text-sm transition-all ${
                 root === note
-                  ? 'bg-black text-white shadow-[3px_3px_0px_#555]'
+                  ? '!bg-black !text-white shadow-[3px_3px_0px_#555]'
                   : 'hover:shadow-[3px_3px_0px_#000]'
               }`}
             >
