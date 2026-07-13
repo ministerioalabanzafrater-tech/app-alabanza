@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, Trash2 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Input } from '@/components/ui/Input'
 import { Button } from '@/components/ui/Button'
@@ -34,6 +34,16 @@ export default function EditarEventoForm({ event }: { event: Event }) {
   const [time,    setTime]      = useState(toTimeInput(event.starts_at))
   const [location,setLocation]  = useState(event.location ?? '')
   const [desc,    setDesc]      = useState(event.description ?? '')
+
+  async function handleDelete() {
+    if (!confirm('¿Eliminar este evento? Esta acción no se puede deshacer.')) return
+    setLoading(true)
+    const supabase = createClient()
+    await (supabase.from('events') as any).delete().eq('id', event.id)
+    setLoading(false)
+    router.push('/eventos')
+    router.refresh()
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -121,6 +131,18 @@ export default function EditarEventoForm({ event }: { event: Event }) {
             <Button type="submit" loading={loading} className="flex-1">
               Guardar cambios
             </Button>
+          </div>
+
+          <div className="border-t-2 border-gray-100 pt-4 mt-2">
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={loading}
+              className="flex items-center gap-2 text-sm font-bold text-red-600 border-2 border-red-600 px-4 py-2 hover:bg-red-600 hover:text-white transition-colors disabled:opacity-50 w-full justify-center"
+            >
+              <Trash2 size={15} />
+              Eliminar evento
+            </button>
           </div>
         </form>
       </div>
