@@ -1,5 +1,5 @@
 import { Card, CardTitle, CardDescription } from '@/components/ui/Card'
-import { Download, Music, GraduationCap } from 'lucide-react'
+import { Download, Music, GraduationCap, BookMarked } from 'lucide-react'
 import Link from 'next/link'
 
 const NOTAS = ['Do', 'Re', 'Mi', 'Fa', 'Sol', 'La', 'Si']
@@ -34,6 +34,18 @@ export default function FormacionPage() {
       <p className="text-gray-500 font-medium mb-8">
         Curso Práctico de Generalidades Musicales — Alabanza Frater Sv.
       </p>
+
+      {/* Plan de Lectura */}
+      <Link href="/formacion/adoracion" className="brutal-card-lg flex items-center gap-4 mb-4 hover:shadow-[8px_8px_0px_#000] transition-shadow cursor-pointer">
+        <div className="w-12 h-12 bg-black flex items-center justify-center shrink-0">
+          <BookMarked size={24} className="text-white" />
+        </div>
+        <div>
+          <p className="font-black text-lg">Plan de Lectura</p>
+          <p className="text-sm text-gray-500 font-medium">La Adoración · Coalición por el Evangelio · 12 capítulos</p>
+        </div>
+        <span className="ml-auto font-black text-xl">→</span>
+      </Link>
 
       {/* Grados Musicales */}
       <Link href="/formacion/grados" className="brutal-card-lg flex items-center gap-4 mb-8 hover:shadow-[8px_8px_0px_#000] transition-shadow cursor-pointer">
