@@ -24,7 +24,7 @@ const SLIDES = [
     icon: Music2,
     section: 'Repertorio',
     title: 'Canciones con transposición',
-    body: 'Abre cualquier canción y usa los botones +/− para subir o bajar la tonalidad. Los acordes en la letra se actualizan en tiempo real.',
+    body: 'Abre cualquier canción y usa los botones +/− para cambiar la tonalidad. Los acordes se transponen en tiempo real, siempre que la letra esté en formato de cifrado: acordes en su propia línea encima de la letra.',
   },
   {
     icon: ListMusic,
