@@ -41,7 +41,7 @@ function FigureCell({
   return (
     <div
       className={`
-        flex flex-col items-center justify-center py-2 px-1 border-2 rounded text-center transition-all
+        flex flex-col items-center justify-center py-2 px-1 border-2 text-center transition-all
         ${figure.isSilence
           ? active
             ? 'border-dashed border-gray-600 bg-gray-100'
@@ -213,7 +213,7 @@ export default function RitmicaPage() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-black text-base">Constructor de Patrón</h2>
-            <button onClick={clearCustom} className="text-xs font-bold text-red-600 border border-red-600 px-2 py-1">
+            <button onClick={clearCustom} className="text-xs font-bold text-red-600 border-2 border-red-600 px-2 py-1">
               Limpiar
             </button>
           </div>
@@ -280,7 +280,7 @@ export default function RitmicaPage() {
                 </div>
                 <button
                   onClick={() => removeMeasure(mi)}
-                  className="p-1 border border-gray-400 text-gray-500 hover:border-red-600 hover:text-red-600 transition-colors text-xs font-bold"
+                  className="p-1 border-2 border-gray-400 text-gray-500 hover:border-red-600 hover:text-red-600 transition-colors text-xs font-bold"
                 >
                   x
                 </button>

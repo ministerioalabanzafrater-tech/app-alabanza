@@ -1,5 +1,5 @@
 import { Card, CardTitle, CardDescription } from '@/components/ui/Card'
-import { Download, Music, GraduationCap } from 'lucide-react'
+import { Download, Music, GraduationCap, Timer } from 'lucide-react'
 import Link from 'next/link'
 import EscalaArmonica from './EscalaArmonica'
 
@@ -44,6 +44,18 @@ export default function FormacionPage() {
         <div>
           <p className="font-black text-lg">Grados Musicales</p>
           <p className="text-sm text-gray-500 font-medium">Escalas mayores, menores y trivia interactiva</p>
+        </div>
+        <span className="ml-auto font-black text-xl">→</span>
+      </Link>
+
+      {/* Figuras y Tiempo */}
+      <Link href="/formacion/ritmica" className="brutal-card-lg flex items-center gap-4 mb-8 hover:shadow-[8px_8px_0px_#000] transition-shadow cursor-pointer">
+        <div className="w-12 h-12 bg-black flex items-center justify-center shrink-0">
+          <Timer size={24} className="text-white" />
+        </div>
+        <div>
+          <p className="font-black text-lg">Figuras y Tiempo</p>
+          <p className="text-sm text-gray-500 font-medium">Metrónomo, ejercicios rítmicos y constructor de patrones</p>
         </div>
         <span className="ml-auto font-black text-xl">→</span>
       </Link>
