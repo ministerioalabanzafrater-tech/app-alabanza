@@ -23,7 +23,10 @@ const PILLARS = [
 export default function FundamentosPage() {
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="font-black text-3xl mb-2">📖 Fundamentos Bíblicos</h1>
+      <h1 className="font-black text-3xl mb-2 flex items-center gap-2">
+        <BookOpen size={28} />
+        Fundamentos Bíblicos
+      </h1>
       <p className="text-gray-500 font-medium mb-8">Teología de la adoración para el equipo de Alabanza Frater.</p>
 
       {/* Intro */}
