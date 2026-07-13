@@ -103,12 +103,14 @@ function MeasureRow({
 }
 
 export default function RitmicaPage() {
-  const { isPlaying, cursor, play, stop } = useMetronome()
+  const { isPlaying, cursor, play, stop, setMetroVolume, setFigureVolume } = useMetronome()
 
   const [exerciseId, setExerciseId] = useState('calentamiento')
   const [bpm,        setBpm]        = useState(70)
   const [metroOn,    setMetroOn]    = useState(true)
   const [figureOn,   setFigureOn]   = useState(true)
+  const [metroVol,   setMetroVol]   = useState(0.5)
+  const [figureVol,  setFigureVol]  = useState(0.8)
   const [custom,     setCustom]     = useState<Measure[]>([])
 
   const allExercises: Exercise[] = [...EXERCISES, { ...CUSTOM_TEMPLATE, measures: custom }]
@@ -329,33 +331,59 @@ export default function RitmicaPage() {
             {isPlaying ? 'Detener' : 'Reproducir'}
           </button>
 
-          {/* Toggle metrónomo */}
-          <button
-            onClick={() => {
-              setMetroOn(v => !v)
-              if (isPlaying) { stop() }
-            }}
-            className={`flex items-center gap-1.5 px-3 py-2 border-2 font-bold text-xs transition-all ${
-              metroOn ? 'border-black bg-black text-white' : 'border-gray-400 text-gray-500'
-            }`}
-          >
-            {metroOn ? <Volume2 size={13} /> : <VolumeX size={13} />}
-            Metrónomo
-          </button>
+          {/* Toggle + volumen metrónomo */}
+          <div className="flex items-center gap-1 border-2 border-black px-2 py-1">
+            <button
+              onClick={() => {
+                setMetroOn(v => !v)
+                if (isPlaying) stop()
+              }}
+              className={`flex items-center gap-1 font-bold text-xs transition-all ${
+                metroOn ? 'text-black' : 'text-gray-400'
+              }`}
+            >
+              {metroOn ? <Volume2 size={13} /> : <VolumeX size={13} />}
+              Metro
+            </button>
+            <input
+              type="range" min={0} max={1} step={0.05}
+              value={metroVol}
+              onChange={e => {
+                const v = parseFloat(e.target.value)
+                setMetroVol(v)
+                setMetroVolume(v)
+              }}
+              className="w-16 accent-black"
+              aria-label="Volumen metrónomo"
+            />
+          </div>
 
-          {/* Toggle figuras */}
-          <button
-            onClick={() => {
-              setFigureOn(v => !v)
-              if (isPlaying) stop()
-            }}
-            className={`flex items-center gap-1.5 px-3 py-2 border-2 font-bold text-xs transition-all ${
-              figureOn ? 'border-black bg-black text-white' : 'border-gray-400 text-gray-500'
-            }`}
-          >
-            <Music size={13} />
-            Figuras
-          </button>
+          {/* Toggle + volumen figuras */}
+          <div className="flex items-center gap-1 border-2 border-black px-2 py-1">
+            <button
+              onClick={() => {
+                setFigureOn(v => !v)
+                if (isPlaying) stop()
+              }}
+              className={`flex items-center gap-1 font-bold text-xs transition-all ${
+                figureOn ? 'text-black' : 'text-gray-400'
+              }`}
+            >
+              <Music size={13} />
+              Figura
+            </button>
+            <input
+              type="range" min={0} max={1} step={0.05}
+              value={figureVol}
+              onChange={e => {
+                const v = parseFloat(e.target.value)
+                setFigureVol(v)
+                setFigureVolume(v)
+              }}
+              className="w-16 accent-black"
+              aria-label="Volumen figuras"
+            />
+          </div>
         </div>
       </div>
     </div>
