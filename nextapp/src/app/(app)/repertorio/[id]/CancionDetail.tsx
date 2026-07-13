@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Music2, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Music2, ExternalLink, Pencil } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import type { Song } from '@/types/database'
@@ -78,6 +78,11 @@ export default function CancionDetail({ song }: { song: Song }) {
           <h1 className="font-black text-3xl leading-tight">{song.title}</h1>
           {song.author && <p className="text-gray-500 font-medium text-sm mt-0.5">{song.author}</p>}
         </div>
+        <Link href={`/repertorio/${song.id}/editar`}
+          className="p-2 border-2 border-black hover:bg-black hover:text-white transition-colors shrink-0 mt-1"
+          aria-label="Editar canción">
+          <Pencil size={18} />
+        </Link>
       </div>
 
       {/* Meta */}
