@@ -25,7 +25,9 @@ function shiftNote(note: string, semitones: number): string {
   return FLAT_IDX.has(j) ? FLAT[j] : SHARP[j]
 }
 
-const CHORD_RE = /\b([A-G][b#]?)((?:maj|min|aug|dim|sus[24]?|add\d+|[Mm]?7|m|M|6|9|11|13)*)(\/[A-G][b#]?)?\b/g
+// (?<![A-Za-z]) prevents matching inside words (e.g. "Dios", "amor")
+// (?![A-Za-z0-9]) prevents partial matches; also fixes \b failing after '#' (\W)
+const CHORD_RE = /(?<![A-Za-z])([A-G][b#]?)((?:maj|min|aug|dim|sus[24]?|add\d+|[Mm]?7|m|M|6|9|11|13)*)(\/[A-G][b#]?)?(?![A-Za-z0-9])/g
 
 function isChordLine(line: string): boolean {
   const trimmed = line.trim()
@@ -36,7 +38,8 @@ function isChordLine(line: string): boolean {
     .replace(new RegExp(CHORD_RE.source,'g'), '')
     .replace(/[\s\-|/\\()|,.:]+/g,'')
     .length
-  return remaining / origLen < 0.25
+  // 0.5: allows lines like "Intro D# Bb" (section label + chords)
+  return remaining / origLen < 0.5
 }
 
 function shiftLine(line: string, semitones: number): string {
